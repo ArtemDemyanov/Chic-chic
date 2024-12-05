@@ -11,14 +11,13 @@ import java.util.Optional;
 
 @Service
 public class UslugaService {
+
     @Autowired
     UslugaRepository uslugaRepository;
 
     public UslugaService() {
         super();
-        // TODO Auto-generated constructor stub
     }
-
 
     public List<Usluga> getUslugas(Long id) {
         return (List<Usluga>) uslugaRepository.findByUserId(id);
@@ -27,9 +26,11 @@ public class UslugaService {
     public Optional<Usluga> findByID(Long id) {
         return uslugaRepository.findById(id);
     }
+
     public void saveUsluga(Usluga newUsluga) {
         uslugaRepository.save(newUsluga);
     }
+
     public void deleteUsluga(Long id) {
         Usluga usluga = uslugaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usluga", "id", id));

@@ -3,19 +3,27 @@ package com.example.demo.model;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "Отзывы")
 public class Review {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @lombok.Setter
+    @lombok.Getter
     @ManyToOne
-    @JoinColumn(name = "reviewer_id")
+    @JoinColumn(name = "обозреватель_id")
     private User reviewer;
 
+    @lombok.Setter
+    @lombok.Getter
     @ManyToOne
-    @JoinColumn(name = "reviewed_user_id")
+    @JoinColumn(name = "обозреваемый_id")
     private User reviewedUser;
 
+    @lombok.Setter
+    @lombok.Getter
     private String content;
 
     public Review() {
@@ -26,38 +34,6 @@ public class Review {
         super();
         this.reviewer = reviewer;
         this.reviewedUser = reviewedUser;
-        this.content = content;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getReviewer() {
-        return reviewer;
-    }
-
-    public void setReviewer(User reviewer) {
-        this.reviewer = reviewer;
-    }
-
-    public User getReviewedUser() {
-        return reviewedUser;
-    }
-
-    public void setReviewedUser(User reviewedUser) {
-        this.reviewedUser = reviewedUser;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
         this.content = content;
     }
 }

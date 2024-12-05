@@ -13,17 +13,17 @@ import java.util.Optional;
 
 @Service
 public class UserService {
+
 	@Autowired
     UserRepository userRepository;
+
 	@Autowired
 	private ReviewRepository reviewRepository;
 	
 	public UserService() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
-	
-	
+
 	public List<User> getUsers() {
 		return (List<User>) userRepository.findAll();
 	}
@@ -45,16 +45,19 @@ public class UserService {
 	public User findByEmail(String email) {
 		return userRepository.findByEmail(email);
 	}
-	public Review saveReview(Review review) {
-		return reviewRepository.save(review);
+
+	public void saveReview(Review review) {
+		reviewRepository.save(review);
 	}
 
 	public List<Review> getReviewsForUser(User user) {
 		return reviewRepository.findByReviewedUser(user);
 	}
+
 	public void deleteReview(Long reviewId) {
 		reviewRepository.deleteById(reviewId);
 	}
+
 	public Optional<Review> findReviewById(Long reviewId) {
 		return reviewRepository.findById(reviewId);
 	}

@@ -8,31 +8,57 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(name = "Услуги")
 public class Usluga {
+
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
+
+    @lombok.Setter
+    @lombok.Getter
     private String name;
+
+    @lombok.Setter
+    @lombok.Getter
     private String description;
+
+    @lombok.Setter
+    @lombok.Getter
     private String category;
 
+    @lombok.Setter
+    @lombok.Getter
     @ManyToOne
-    @JoinColumn(name="user_id")
+    @JoinColumn(name="пользователь_id")
     @JsonBackReference
     private User user;
+
+    @lombok.Setter
+    @lombok.Getter
     private String location;
+
+    @lombok.Setter
+    @lombok.Getter
     private String coordinates;
+
+    @lombok.Setter
+    @lombok.Getter
     @OneToMany(mappedBy="usluga", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Slot> slots=new ArrayList<>();
+
+    @lombok.Setter
+    @lombok.Getter
     private double price;
+
+    @lombok.Setter
+    @lombok.Getter
     private int durationMinutes;
 
     public Usluga() {
         super();
-        // TODO Auto-generated constructor stub
     }
-
 
     public Usluga(String name, String description, String category, User user, String location, String coordinates, double price, int durationMinutes) {
         super();
@@ -45,46 +71,5 @@ public class Usluga {
         this.price=price;
         this.durationMinutes=durationMinutes;
     }
-
-    public String getName(){
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public String getDescription(){return description;}
-    public void setDescription(String description){this.description=description;}
-
-    public String getCategory(){return category;}
-    public void setCategory(String category){this.category=category;}
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-    public String getLocation(){return location;}
-    public void setLocation(String location){this.location=location;}
-    public String getCoordinates(){return coordinates;}
-    public void setCoordinates(String coordinates){this.coordinates=coordinates;}
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public int getDurationMinutes() {
-        return durationMinutes;
-    }
-
-    public void setDurationMinutes(int durationMinutes) {
-        this.durationMinutes = durationMinutes;
-    }
-    public List<Slot> getSlots(){return slots;}
-    public void setSlots(List<Slot> slots){this.slots=slots;}
 }
 

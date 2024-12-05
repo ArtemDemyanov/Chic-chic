@@ -23,8 +23,13 @@ public class PortfolioService {
     public List<Portfolio> getPortfolios() {
         return (List<Portfolio>) portfolioRepository.findAll();
     }
+
     public Optional<Portfolio> findByID(Long id) {
         return portfolioRepository.findById(id);
+    }
+
+    public Optional<Portfolio> findPortfolioByUserId(Long userId) {
+        return portfolioRepository.findByUserId(userId);
     }
 
     public void savePortfolio(Portfolio newPortfolio){
@@ -38,9 +43,5 @@ public class PortfolioService {
     public void deletePortfolio(Long id){
         Portfolio portfolio = findById(id).orElseThrow(() -> new ResourceNotFoundException("Portfolio", "id", id));
         portfolioRepository.delete(portfolio);
-    }
-
-    public Portfolio findByUserId(Long id){
-        return portfolioRepository.findByUserId(id);
     }
 }

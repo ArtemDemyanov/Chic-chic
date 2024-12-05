@@ -8,8 +8,10 @@ import java.util.List;
 
 @Repository
 public interface UslugaRepository extends JpaRepository<Usluga, Long> {
-    List<Usluga> findByUserId(Long userId);
-    List<Usluga> findByNameContainingIgnoreCase(String name);
-    List<Usluga> findByLocation(String location);
 
+    List<Usluga> findByUserId(Long userId);
+
+    List<Usluga> findByNameContainingIgnoreCase(String name);
+
+    List<Usluga> findByLocation(String location);
 }

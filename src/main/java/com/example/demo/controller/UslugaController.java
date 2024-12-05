@@ -24,12 +24,14 @@ public class UslugaController {
     private final UserRepository userRepository;
 
     private final UslugaService uslugaService;
+
     @Autowired
     public UslugaController(UslugaRepository uslugaRepository, UserRepository userRepository, UslugaService uslugaService) {
         this.uslugaRepository = uslugaRepository;
         this.userRepository = userRepository;
         this.uslugaService = uslugaService;
     }
+
     @Operation(summary = "Добавить услугу")
     @PreAuthorize("hasRole('ROLE_MASTER')")
     @PostMapping(path="/create/{userId}")
@@ -44,6 +46,7 @@ public class UslugaController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @Operation(summary = "Обновить данные об услуге")
     @PutMapping("/{id}")
     public ResponseEntity<Optional<Usluga>> updateUsluga(@PathVariable(value="id") long Id, @RequestBody Usluga newUsluga ){
@@ -64,12 +67,14 @@ public class UslugaController {
             return new ResponseEntity<>(Optional.empty(), HttpStatus.NOT_FOUND);
         }
     }
+
     @Operation(summary = "Посмотреть все услуги")
     @GetMapping("/all")
     public ResponseEntity<List<Usluga>> getAllUslugas() {
         List<Usluga> Uslugas = uslugaRepository.findAll();
         return ResponseEntity.ok(Uslugas);
     }
+
     @Operation(summary = "Посмотреть услуги определнного мастера")
     @PreAuthorize("hasRole('ROLE_MASTER')")
     @GetMapping("/{userId}")
@@ -77,6 +82,7 @@ public class UslugaController {
         List<Usluga> uslugas = uslugaService.getUslugas(userId);
         return ResponseEntity.ok(uslugas);
     }
+
     @Operation(summary = "Удалить услугу")
     @PreAuthorize("hasRole('ROLE_MASTER')")
     @DeleteMapping("/{id}")
@@ -84,12 +90,14 @@ public class UslugaController {
         uslugaService.deleteUsluga(Id);
         return "Usluga Deleted";
     }
+
     @Operation(summary = "Поиск услуги по имени")
     @GetMapping("/search")
     public ResponseEntity<List<Usluga>> searchUslugasByName(@RequestParam String name) {
         List<Usluga> uslugas = uslugaRepository.findByNameContainingIgnoreCase(name);
         return ResponseEntity.ok(uslugas);
     }
+
     @Operation(summary = "Поиск услуги по локации (название адреса и т. д.)")
     @GetMapping("/city")
     public ResponseEntity<List<Usluga>> getUslugasByLocation(@RequestParam String location) {

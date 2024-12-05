@@ -19,10 +19,10 @@ public class ApplicationService {
         // TODO Auto-generated constructor stub
     }
 
-
     public List<Application> getApplicationsUsluga(Long id) {
         return (List<Application>) applicationRepository.findByUslugaId(id);
     }
+
     public List<Application> getApplicationsUser(Long id) {
         return (List<Application>) applicationRepository.findByUserId(id);
     }

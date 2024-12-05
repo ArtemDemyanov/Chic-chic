@@ -28,8 +28,7 @@ public class SecurityConfiguration {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService)
-                .passwordEncoder(new BCryptPasswordEncoder());
+        auth.userDetailsService(userDetailsService).passwordEncoder(new BCryptPasswordEncoder());
     }
 
     @Bean
@@ -65,19 +64,7 @@ public class SecurityConfiguration {
         configuration.setAllowedHeaders(Arrays.asList("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
-//;
-	/*
-	//If you want to configure an InMemory User for testing
-	@Bean
-	public UserDetailsService userDetailsService() {
-		UserDetails user = User
-				.withUsername("user")
-				.password(passwordEncoder().encode("password"))
-				.roles("USER")
-				.build();
-		return new InMemoryUserDetailsManager(user);
-	}
-    */
 }

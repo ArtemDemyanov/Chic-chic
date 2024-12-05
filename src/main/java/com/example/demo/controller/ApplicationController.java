@@ -1,12 +1,14 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Application;
+import com.example.demo.model.Slot;
 import com.example.demo.model.User;
 import com.example.demo.model.Usluga;
+import com.example.demo.repository.SlotRepository;
+import com.example.demo.service.ApplicationService;
 import com.example.demo.repository.ApplicationRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.UslugaRepository;
-import com.example.demo.service.ApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,39 +27,56 @@ public class ApplicationController {
     private final UserRepository userRepository;
 
     private final UslugaRepository uslugaRepository;
+
     private final ApplicationService applicationService;
+
+    private final SlotRepository slotRepository;
+
     @Autowired
-    public ApplicationController(ApplicationRepository applicationRepository, UserRepository userRepository, UslugaRepository uslugaRepository, ApplicationService applicationService) {
+    public ApplicationController(ApplicationRepository applicationRepository, UserRepository userRepository, UslugaRepository uslugaRepository, ApplicationService applicationService, SlotRepository slotRepository) {
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
         this.uslugaRepository = uslugaRepository;
         this.applicationService = applicationService;
+        this.slotRepository = slotRepository;
     }
+
     @Operation(summary = "Запись на услугу")
     @PostMapping("/{userId}/{uslugaId}")
     public ResponseEntity<?> applyForUsluga(@PathVariable Long uslugaId, @PathVariable Long userId, @RequestBody Application application) {
         Optional<Usluga> optionalUsluga = uslugaRepository.findById(uslugaId);
         Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUsluga.isPresent() && optionalUser.isPresent()) {
-            Usluga usluga = optionalUsluga.get();
-            User user = optionalUser.get();
-            boolean alreadyApplied = applicationRepository.existsByUserAndUsluga(user, usluga);
-            if (alreadyApplied) {
-                return ResponseEntity.badRequest().body("User has already applied to this event.");
-            } else {
-                application.setUsluga(usluga);
-                application.setUser(user);
-                application.setApplicantName(user.getName());
-                application.setApplicantEmail(user.getEmail());
-                application.setDate(application.getDate());
-                application.setTime(application.getTime());
-                Application savedApplication = applicationRepository.save(application);
-                return ResponseEntity.ok(savedApplication);
-            }
-        } else {
+
+        if (!optionalUsluga.isPresent() || !optionalUser.isPresent()) {
             return ResponseEntity.notFound().build();
         }
+
+        Usluga usluga = optionalUsluga.get();
+        User user = optionalUser.get();
+
+        Optional<Slot> optionalSlot = usluga.getSlots().stream()
+                .filter(slot -> slot.getDate().equals(application.getDate()) && slot.getTime().equals(application.getTime()) && slot.isAvailable())
+                .findFirst();
+
+        if (!optionalSlot.isPresent()) {
+            return ResponseEntity.badRequest().body("The requested slot is not available.");
+        }
+
+        Slot slot = optionalSlot.get();
+        slot.setAvailable(false);
+        slotRepository.save(slot);
+
+        application.setUsluga(usluga);
+        application.setUser(user);
+        application.setApplicantName(user.getName());
+        application.setApplicantEmail(user.getEmail());
+        application.setDate(application.getDate());
+        application.setTime(application.getTime());
+        Application savedApplication = applicationRepository.save(application);
+
+        return ResponseEntity.ok(savedApplication);
     }
+
     @Operation(summary = "Посмотреть записи на определенную услугу")
     @PreAuthorize("hasRole('ROLE_MASTER')")
     @GetMapping("/usluga/{uslugaId}")
@@ -65,12 +84,14 @@ public class ApplicationController {
         List<Application> applications = applicationService.getApplicationsUsluga(uslugaId);
         return ResponseEntity.ok(applications);
     }
+
     @Operation(summary = "Посмотреть записи к определенному мастеру")
     @GetMapping("/master/{userId}")
     public ResponseEntity<List<Application>> getApplicationsForUser(@PathVariable Long userId) {
         List<Application> applications = applicationService.getApplicationsUser(userId);
         return ResponseEntity.ok(applications);
     }
+
     @Operation(summary = "Удалить услугу")
     @DeleteMapping("/{id}")
     public String withdrawApplication(@PathVariable(value = "id") long Id) {

@@ -34,16 +34,15 @@ public class UserController {
         this.uslugaService = uslugaService;
     }
 
-    // Get All Users
     @Operation(summary = "Посмотреть всех пользователей")
     @GetMapping("/user")
     public List<User> getUsers() {
         return userService.getUsers();
     }
+
     @Operation(summary = "Регистрация пользователя")
     @PostMapping("/user")
     public ResponseEntity<Optional<User>> addUser(@RequestBody UserPostDTO newUserDTO) {
-
         if (newUserDTO.getName() == null ||
                 newUserDTO.getEmail() == null ||
                 newUserDTO.getPassword() == null || newUserDTO.getTelephone_number() == null || newUserDTO.getRole() == null) {
@@ -56,6 +55,7 @@ public class UserController {
         return new ResponseEntity<>(Optional.ofNullable(newUser),HttpStatus.CREATED);
 
     }
+
     @Operation(summary = "Обновить профиль пользователя")
     @PutMapping("/user/{id}")
     public ResponseEntity<Optional<User>> updateUser(@PathVariable(value="id") long Id, @RequestBody User newUser ){
@@ -72,6 +72,7 @@ public class UserController {
             return new ResponseEntity<>(Optional.empty(), HttpStatus.NOT_FOUND);
         }
     }
+
     @Operation(summary = "Обновить фотографию в профиле")
     @PutMapping(path="/user/{id}", consumes = "multipart/form-data")
     public ResponseEntity<Optional<User>> updateProfilePicture(@RequestPart(value = "file") MultipartFile file, @PathVariable(value="id") long Id) {
@@ -93,15 +94,13 @@ public class UserController {
             return new ResponseEntity<>(Optional.empty(), HttpStatus.NOT_FOUND);
         }
     }
-    // Get User by ID
+
     @Operation(summary = "Получить информацию по определенному пользователю")
     @GetMapping("/user/{id}")
     public Optional<User> getUserById(@PathVariable(value = "id") long Id) {
         return userService.findByID(Id);
     }
 
-
-    //Delete a User by ID
     @Operation(summary = "Удалить пользователя")
     @DeleteMapping("/user/{id}")
     public String deleteUser(@PathVariable(value = "id") long Id) {
@@ -109,12 +108,12 @@ public class UserController {
         return "User Deleted";
     }
 
-    //Get User by Email
     @Operation(summary = "Получить информацию по определенному пользователю по его почте")
     @GetMapping("/user/email/{email}")
     public Optional<User> getUserByEmail(@PathVariable(value = "email") String email) {
         return Optional.ofNullable(userService.findByEmail(email));
     }
+
     @Operation(summary = "Добавление услуги в избранное")
     @PostMapping("/user/{userId}/{uslugaId}/favorite")
     public ResponseEntity<String> addUslugaToFavorites(@PathVariable Long userId, @PathVariable Long uslugaId) {
@@ -130,6 +129,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @Operation(summary = "Удалить услугу из избранного")
     @DeleteMapping("/user/{userId}/{uslugaId}/favorite")
     public ResponseEntity<String> removeUslugaFromFavorites(@PathVariable Long userId, @PathVariable Long uslugaId) {
@@ -145,6 +145,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @Operation(summary = "Посмотреть услуги из избранного")
     @GetMapping("/{userId}/favorite-Uslugas")
     public ResponseEntity<List<Usluga>> getFavoriteUslugas(@PathVariable Long userId) {
@@ -156,6 +157,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @Operation(summary = "Добавить отзыв")
     @PostMapping("/user/{reviewerId}/review/{reviewedUserId}")
     public ResponseEntity<?> addReview(@PathVariable Long reviewerId, @PathVariable Long reviewedUserId, @RequestBody String content) {
@@ -172,6 +174,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @Operation(summary = "Посмотреть отзывы на определенного мастера")
     @GetMapping("/user/{userId}/reviews")
     public ResponseEntity<?> getReviewsForUser(@PathVariable Long userId) {
@@ -184,6 +187,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @Operation(summary = "Удалить отзыв")
     @DeleteMapping("/user/review/{reviewId}")
     public ResponseEntity<?> deleteReview(@PathVariable Long reviewId) {
@@ -202,6 +206,7 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
     private String getCurrentUsername() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetails) {

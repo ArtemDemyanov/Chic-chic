@@ -10,7 +10,10 @@ import java.util.List;
 
 @Repository
 public interface ApplicationRepository extends JpaRepository<Application, Long> {
+
     List<Application> findByUslugaId(Long eventId);
+
     List<Application> findByUserId(Long userId);
+
     boolean existsByUserAndUsluga(User user, Usluga usluga);
 }

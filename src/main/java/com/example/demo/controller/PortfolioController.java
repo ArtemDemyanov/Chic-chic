@@ -17,20 +17,18 @@ import java.util.Optional;
 @PreAuthorize("hasRole('ROLE_MASTER')")
 @RestController
 public class PortfolioController {
+
     private final PortfolioService portfolioService;
     private final UserRepository userRepository;
     private final PortfolioRepository portfolioRepository;
+
     @Autowired
     public PortfolioController(PortfolioService portfolioService, UserRepository userRepository, PortfolioRepository portfolioRepository) {
         this.portfolioService = portfolioService;
         this.userRepository = userRepository;
         this.portfolioRepository = portfolioRepository;
     }
-    @Operation(summary = "Посмотреть все портфолио")
-    @GetMapping("/portfolio")
-    public List<Portfolio> getPortfolios() {
-        return portfolioService.getPortfolios();
-    }
+
     @Operation(summary = "Создать портфолио")
     @PostMapping(path="/create/{userId}")
     public ResponseEntity<?> createPortfolio(@PathVariable Long userId, @RequestBody Portfolio portfolio) {
@@ -44,17 +42,21 @@ public class PortfolioController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @Operation(summary = "Посмотреть портфолио определенного мастера")
     @GetMapping("/portfolio/{id}")
-    public Optional<Portfolio> getPortfolioById(@PathVariable(value = "id") long Id) {
-        return portfolioService.findByID(Id);
+    public Optional<Portfolio> getPortfolioByMasterId(@PathVariable(value = "id") long masterId) {
+        Optional<Portfolio> portfolio = portfolioService.findPortfolioByUserId(masterId);
+        return portfolioService.findByID(masterId);
     }
+
     @Operation(summary = "Удалить портфолио")
     @DeleteMapping("/portfolio/{id}")
     public String deletePortfolio(@PathVariable(value = "id") long Id) {
         portfolioService.deletePortfolio(Id);
         return "Portfolio Deleted";
     }
+
     @Operation(summary = "Обновить портфолио")
     @PutMapping("/portfolio/{id}")
     public ResponseEntity<Optional<Portfolio>> updatePortfolio(@PathVariable(value="id") long Id, @RequestBody Portfolio newPortfolio ){
