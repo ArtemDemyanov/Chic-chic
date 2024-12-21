@@ -29,9 +29,11 @@ public class ApplicationService {
     public Optional<Application> findByID(Long id) {
         return applicationRepository.findById(id);
     }
+
     public void addApplication(Application newApplication) {
         applicationRepository.save(newApplication);
     }
+
     public void deleteApplication(Long id) {
         Application application = applicationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Application", "id", id));

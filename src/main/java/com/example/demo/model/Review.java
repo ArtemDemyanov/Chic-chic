@@ -8,6 +8,7 @@ public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @lombok.Getter
     private Long id;
 
     @lombok.Setter

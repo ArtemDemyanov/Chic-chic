@@ -23,6 +23,7 @@ public class User implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@lombok.Getter
 	private Long id;
 
 	@lombok.Setter
@@ -39,6 +40,7 @@ public class User implements Serializable {
 	@lombok.Setter
 	@lombok.Getter
 	@NotBlank
+	@Column(unique=true)
 	private String telephone_number;
 
 	@lombok.Setter

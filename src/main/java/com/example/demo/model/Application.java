@@ -13,8 +13,10 @@ import java.util.Date;
 @Table(name = "Записи")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Application {
+
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @lombok.Getter
     private Long id;
 
     @lombok.Setter

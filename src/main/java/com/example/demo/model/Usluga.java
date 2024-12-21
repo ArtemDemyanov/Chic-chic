@@ -13,6 +13,7 @@ public class Usluga {
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @lombok.Getter
     private Long id;
 
     @lombok.Setter
@@ -46,7 +47,7 @@ public class Usluga {
     @lombok.Getter
     @OneToMany(mappedBy="usluga", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<Slot> slots=new ArrayList<>();
+    private List<Slot> slots = new ArrayList<>();
 
     @lombok.Setter
     @lombok.Getter

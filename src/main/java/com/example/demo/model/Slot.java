@@ -7,11 +7,12 @@ import java.sql.Time;
 import java.util.Date;
 
 @Entity
-@Table(name = "Пользователи")
+@Table(name = "Слот")
 public class Slot {
 
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @lombok.Getter
     private Long id;
 
     @lombok.Setter

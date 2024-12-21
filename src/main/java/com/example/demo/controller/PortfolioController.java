@@ -11,7 +11,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 @PreAuthorize("hasRole('ROLE_MASTER')")
@@ -46,8 +49,8 @@ public class PortfolioController {
     @Operation(summary = "Посмотреть портфолио определенного мастера")
     @GetMapping("/portfolio/{id}")
     public Optional<Portfolio> getPortfolioByMasterId(@PathVariable(value = "id") long masterId) {
-        Optional<Portfolio> portfolio = portfolioService.findPortfolioByUserId(masterId);
-        return portfolioService.findByID(masterId);
+        //Optional<Portfolio> portfolio = portfolioService.findPortfolioByUserId(masterId);
+        return portfolioService.findPortfolioByUserId(masterId);
     }
 
     @Operation(summary = "Удалить портфолио")
@@ -57,7 +60,7 @@ public class PortfolioController {
         return "Portfolio Deleted";
     }
 
-    @Operation(summary = "Обновить портфолио")
+   /* @Operation(summary = "Обновить портфолио")
     @PutMapping("/portfolio/{id}")
     public ResponseEntity<Optional<Portfolio>> updatePortfolio(@PathVariable(value="id") long Id, @RequestBody Portfolio newPortfolio ){
         Optional<Portfolio> existingPortfolio = portfolioService.findByID(Id);
@@ -70,5 +73,37 @@ public class PortfolioController {
         } else {
             return new ResponseEntity<>(Optional.empty(), HttpStatus.NOT_FOUND);
         }
+    } */
+
+    @PutMapping(path = "/portfolio/{id}", consumes = "multipart/form-data")
+    public ResponseEntity<?> updatePortfolio(
+            @PathVariable(value = "id") long Id,
+            @RequestPart("photos") List<MultipartFile> files,
+            @RequestPart("description") String description) {
+
+        Optional<Portfolio> existingPortfolio = portfolioService.findByID(Id);
+
+        if (!existingPortfolio.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Portfolio portfolioToUpdate = existingPortfolio.get();
+        List<byte[]> photos = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            if (file != null && !file.isEmpty()) {
+                try {
+                    photos.add(file.getBytes());
+                } catch (IOException e) {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        }
+
+        portfolioToUpdate.setPhotosAsList(photos);
+        portfolioToUpdate.setDescription(description);
+        portfolioService.savePortfolio(portfolioToUpdate);
+        return new ResponseEntity<>(portfolioToUpdate, HttpStatus.OK);
     }
+
 }

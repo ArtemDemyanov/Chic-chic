@@ -20,9 +20,9 @@ public class PortfolioService {
         super();
     }
 
-    public List<Portfolio> getPortfolios() {
-        return (List<Portfolio>) portfolioRepository.findAll();
-    }
+//    public List<Portfolio> getPortfolios() {
+//        return (List<Portfolio>) portfolioRepository.findAll();
+//    }
 
     public Optional<Portfolio> findByID(Long id) {
         return portfolioRepository.findById(id);
