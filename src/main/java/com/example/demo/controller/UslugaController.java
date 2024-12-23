@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Slot;
 import com.example.demo.model.User;
 import com.example.demo.model.Usluga;
 import com.example.demo.repository.UserRepository;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,24 +49,55 @@ public class UslugaController {
         }
     }
 
-    @Operation(summary = "Обновить данные об услуге")
     @PutMapping("/{id}")
-    public ResponseEntity<Optional<Usluga>> updateUsluga(@PathVariable(value="id") long Id, @RequestBody Usluga newUsluga ){
-        Optional<Usluga> existingUsluga = uslugaService.findByID(Id);
-        if (existingUsluga.isPresent()) {
-            Usluga uslugaToUpdate = existingUsluga.get();
-            uslugaToUpdate.setName(newUsluga.getName());
-            uslugaToUpdate.setDescription(newUsluga.getDescription());
-            uslugaToUpdate.setCategory(newUsluga.getCategory());
-            uslugaToUpdate.setCoordinates(newUsluga.getCoordinates());
-            uslugaToUpdate.setLocation(newUsluga.getLocation());
-            uslugaToUpdate.setSlots(newUsluga.getSlots());
-            uslugaToUpdate.setPrice(newUsluga.getPrice());
-            uslugaToUpdate.setDurationMinutes(newUsluga.getDurationMinutes());
-            uslugaService.saveUsluga(uslugaToUpdate);
-            return new ResponseEntity<>(Optional.ofNullable(uslugaToUpdate), HttpStatus.OK);
+    public ResponseEntity<Usluga> updateUsluga(@PathVariable(value="id") long id, @RequestBody Usluga newUsluga) {
+        Optional<Usluga> existingUslugaOptional = uslugaService.findByID(id);
+        if (existingUslugaOptional.isPresent()) {
+            Usluga existingUsluga = existingUslugaOptional.get();
+
+            // Обновление основных свойств услуги
+            existingUsluga.setName(newUsluga.getName());
+            existingUsluga.setDescription(newUsluga.getDescription());
+            existingUsluga.setCategory(newUsluga.getCategory());
+            existingUsluga.setCoordinates(newUsluga.getCoordinates());
+            existingUsluga.setLocation(newUsluga.getLocation());
+            existingUsluga.setPrice(newUsluga.getPrice());
+            existingUsluga.setDurationMinutes(newUsluga.getDurationMinutes());
+
+            // Обработка списка слотов
+            List<Slot> currentSlots = existingUsluga.getSlots();
+            List<Slot> newSlots = newUsluga.getSlots();
+
+            if (newSlots == null || newSlots.isEmpty()) {
+                // Если новый список слотов пуст, удаляем все существующие слоты
+                for (Slot currentSlot : currentSlots) {
+                    currentSlot.setUsluga(null); // Разрываем связь
+                }
+                currentSlots.clear(); // Очищаем коллекцию
+            } else {
+                // Удаление отсутствующих слотов
+                List<Slot> slotsToRemove = new ArrayList<>();
+                for (Slot currentSlot : currentSlots) {
+                    if (!newSlots.contains(currentSlot)) {
+                        currentSlot.setUsluga(null); // Разрываем связь
+                        slotsToRemove.add(currentSlot);
+                    }
+                }
+                currentSlots.removeAll(slotsToRemove);
+
+                // Добавление новых слотов
+                for (Slot newSlot : newSlots) {
+                    if (!currentSlots.contains(newSlot)) {
+                        newSlot.setUsluga(existingUsluga); // Устанавливаем связь
+                        currentSlots.add(newSlot);
+                    }
+                }
+            }
+
+            uslugaService.saveUsluga(existingUsluga);
+            return ResponseEntity.ok(existingUsluga);
         } else {
-            return new ResponseEntity<>(Optional.empty(), HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
 

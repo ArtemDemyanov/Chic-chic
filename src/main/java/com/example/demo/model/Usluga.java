@@ -45,7 +45,7 @@ public class Usluga {
 
     @lombok.Setter
     @lombok.Getter
-    @OneToMany(mappedBy="usluga", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy="usluga", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Slot> slots = new ArrayList<>();
 

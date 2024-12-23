@@ -7,7 +7,7 @@ import java.sql.Time;
 import java.util.Date;
 
 @Entity
-@Table(name = "Слот")
+@Table(name = "slots")
 public class Slot {
 
     @Id
@@ -15,12 +15,16 @@ public class Slot {
     @lombok.Getter
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name="usluga_id")
+    @JsonBackReference
     @lombok.Setter
     @lombok.Getter
-    @ManyToOne
-    @JoinColumn(name="услуга_id")
-    @JsonBackReference
     private Usluga usluga;
+
+    @OneToOne(mappedBy = "slot", cascade = CascadeType.ALL, orphanRemoval = true)
+    @lombok.Getter @lombok.Setter
+    private Application application;
 
     @lombok.Setter
     @lombok.Getter
@@ -47,4 +51,3 @@ public class Slot {
         this.isAvailable = isAvailable;
     }
 }
-

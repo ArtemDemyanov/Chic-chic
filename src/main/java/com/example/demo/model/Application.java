@@ -1,6 +1,5 @@
 package com.example.demo.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -10,7 +9,7 @@ import java.sql.Time;
 import java.util.Date;
 
 @Entity
-@Table(name = "Записи")
+@Table(name = "applications")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Application {
 
@@ -19,11 +18,11 @@ public class Application {
     @lombok.Getter
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name="usluga_id")
+    @JsonIgnoreProperties("applications")
     @lombok.Setter
     @lombok.Getter
-    @ManyToOne
-    @JoinColumn(name="услуга_id")
-    @JsonIgnoreProperties("записи")
     private Usluga usluga;
 
     @lombok.Setter
@@ -46,11 +45,14 @@ public class Application {
     @lombok.Getter
     private Time time;
 
-    @lombok.Setter
-    @lombok.Getter
+    @OneToOne
+    @JoinColumn(name="slot_id")
+    @lombok.Getter @lombok.Setter
+    private Slot slot;
+
     @ManyToOne
-    @JoinColumn(name="пользователь_id")
-    @JsonBackReference
+    @JoinColumn(name="user_id")
+    @lombok.Getter @lombok.Setter
     private User user;
 
     public Application() {
@@ -59,10 +61,10 @@ public class Application {
 
     public Application(String applicantName, String uslugaName, String applicantEmail, Usluga usluga, User user) {
         super();
-        this.usluga=usluga;
-        this.applicantName=applicantName;
-        this.uslugaName=uslugaName;
-        this.applicantEmail=applicantEmail;
-        this.user=user;
+        this.usluga = usluga;
+        this.applicantName = applicantName;
+        this.uslugaName = uslugaName;
+        this.applicantEmail = applicantEmail;
+        this.user = user;
     }
 }
