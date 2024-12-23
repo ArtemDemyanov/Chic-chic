@@ -1,6 +1,7 @@
 package com.example.demo.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.sql.Time;
@@ -24,6 +25,7 @@ public class Slot {
 
     @OneToOne(mappedBy = "slot", cascade = CascadeType.ALL, orphanRemoval = true)
     @lombok.Getter @lombok.Setter
+    @JsonIgnore
     private Application application;
 
     @lombok.Setter

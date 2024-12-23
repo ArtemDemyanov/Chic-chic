@@ -56,7 +56,10 @@ public class ApplicationController {
             }
 
             User user = optionalUser.get();
+            Usluga usluga = slot.getUsluga();
+
             application.setUsluga(slot.getUsluga());
+            application.setUslugaName(usluga.getName());
             application.setUser(user);
             application.setApplicantName(user.getName());
             application.setApplicantEmail(user.getEmail());
@@ -90,7 +93,7 @@ public class ApplicationController {
         return ResponseEntity.ok(applications);
     }
 
-    @Operation(summary = "Удалить запись")
+    /*@Operation(summary = "Удалить запись")
     @DeleteMapping("/{id}")
     @Transactional // Гарантируем выполнение операций в рамках одной транзакции
     public ResponseEntity<?> withdrawApplication(@PathVariable(value = "id") long id) {
@@ -116,5 +119,31 @@ public class ApplicationController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }*/
+
+    @Operation(summary = "Удалить запись")
+    @DeleteMapping("/{id}")
+    @Transactional // Гарантируем выполнение операций в рамках одной транзакции
+    public ResponseEntity<?> withdrawApplication(@PathVariable(value = "id") long id) {
+        Optional<Application> applicationOptional = applicationRepository.findById(id);
+
+        if (applicationOptional.isPresent()) {
+            Application application = applicationOptional.get();
+            Slot slot = application.getSlot(); // Получаем слот напрямую из записи
+
+            if (slot != null) {
+                // Разрываем связь между Slot и Application
+                slot.setApplication(null);
+                slot.setAvailable(true); // Устанавливаем слот как доступный
+                slotRepository.save(slot); // Сохраняем изменения слота
+            }
+
+            // Удаляем запись
+            applicationRepository.delete(application);
+            return ResponseEntity.ok("Application withdrawn and slot made available");
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
+
 }
