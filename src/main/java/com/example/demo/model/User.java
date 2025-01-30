@@ -82,11 +82,13 @@ public class User implements Serializable {
 
 	@lombok.Setter
 	@lombok.Getter
+	//@JsonManagedReference
 	@OneToMany(mappedBy = "reviewer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Review> writtenReviews = new ArrayList<>();
 
 	@lombok.Setter
 	@lombok.Getter
+	//@JsonManagedReference
 	@OneToMany(mappedBy = "reviewedUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Review> receivedReviews = new ArrayList<>();
 

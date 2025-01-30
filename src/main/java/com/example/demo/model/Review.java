@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,12 +14,14 @@ public class Review {
 
     @lombok.Setter
     @lombok.Getter
+    //@JsonBackReference
     @ManyToOne
     @JoinColumn(name = "обозреватель_id")
     private User reviewer;
 
     @lombok.Setter
     @lombok.Getter
+    //@JsonBackReference
     @ManyToOne
     @JoinColumn(name = "обозреваемый_id")
     private User reviewedUser;

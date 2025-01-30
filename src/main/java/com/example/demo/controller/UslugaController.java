@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/usluga")
@@ -49,7 +51,7 @@ public class UslugaController {
         }
     }
 
-    @PutMapping("/{id}")
+    /*@PutMapping("/{id}")
     public ResponseEntity<Usluga> updateUsluga(@PathVariable(value="id") long id, @RequestBody Usluga newUsluga) {
         Optional<Usluga> existingUslugaOptional = uslugaService.findByID(id);
         if (existingUslugaOptional.isPresent()) {
@@ -91,6 +93,50 @@ public class UslugaController {
                         newSlot.setUsluga(existingUsluga); // Устанавливаем связь
                         currentSlots.add(newSlot);
                     }
+                }
+            }
+
+            uslugaService.saveUsluga(existingUsluga);
+            return ResponseEntity.ok(existingUsluga);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }*/
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Usluga> updateUsluga(@PathVariable(value="id") long id, @RequestBody Usluga newUsluga) {
+        Optional<Usluga> existingUslugaOptional = uslugaService.findByID(id);
+        if (existingUslugaOptional.isPresent()) {
+            Usluga existingUsluga = existingUslugaOptional.get();
+
+            // Обновление основных свойств услуги
+            existingUsluga.setName(newUsluga.getName());
+            existingUsluga.setDescription(newUsluga.getDescription());
+            existingUsluga.setCategory(newUsluga.getCategory());
+            existingUsluga.setCoordinates(newUsluga.getCoordinates());
+            existingUsluga.setLocation(newUsluga.getLocation());
+            existingUsluga.setPrice(newUsluga.getPrice());
+            existingUsluga.setDurationMinutes(newUsluga.getDurationMinutes());
+
+            // Обработка списка слотов
+            Map<Long, Slot> existingSlots = existingUsluga.getSlots().stream()
+                    .collect(Collectors.toMap(Slot::getId, slot -> slot));
+            Map<Long, Slot> newSlots = newUsluga.getSlots().stream()
+                    .collect(Collectors.toMap(Slot::getId, slot -> slot));
+
+            // Удаление отсутствующих в новом списке слотов
+            existingUsluga.getSlots().removeIf(slot -> !newSlots.containsKey(slot.getId()));
+
+            // Обновление существующих и добавление новых слотов
+            for (Slot newSlot : newUsluga.getSlots()) {
+                Slot existingSlot = existingSlots.get(newSlot.getId());
+                if (existingSlot != null) {
+                    // Обновляем существующий слот
+                    existingSlot.updateFrom(newSlot); // Метод для обновления данных слота из newSlot
+                } else {
+                    // Добавляем новый слот
+                    newSlot.setUsluga(existingUsluga);
+                    existingUsluga.getSlots().add(newSlot);
                 }
             }
 

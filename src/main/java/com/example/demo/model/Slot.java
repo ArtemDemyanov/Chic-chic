@@ -52,4 +52,11 @@ public class Slot {
         this.time = time;
         this.isAvailable = isAvailable;
     }
+
+    public void updateFrom(Slot other) {
+        this.time = other.time;
+        this.date = other.date;
+        this.isAvailable = other.isAvailable;
+
+    }
 }
