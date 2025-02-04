@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 
 import java.sql.Time;
 import java.util.Date;
-//
+
 @Entity
 @Table(name = "applications")
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
