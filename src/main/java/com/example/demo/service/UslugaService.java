@@ -27,8 +27,8 @@ public class UslugaService {
         return uslugaRepository.findById(id);
     }
 
-    public void saveUsluga(Usluga newUsluga) {
-        uslugaRepository.save(newUsluga);
+    public Usluga saveUsluga(Usluga newUsluga) {
+        return uslugaRepository.save(newUsluga);
     }
 
     public void deleteUsluga(Long id) {

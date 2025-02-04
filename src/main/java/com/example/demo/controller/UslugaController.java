@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Slot;
+import com.example.demo.dto.UslugaDTO;
+import com.example.demo.mapper.UslugaMapper;
 import com.example.demo.model.User;
 import com.example.demo.model.Usluga;
 import com.example.demo.repository.UserRepository;
@@ -13,9 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -24,9 +23,7 @@ import java.util.stream.Collectors;
 public class UslugaController {
 
     private final UslugaRepository uslugaRepository;
-
     private final UserRepository userRepository;
-
     private final UslugaService uslugaService;
 
     @Autowired
@@ -38,110 +35,30 @@ public class UslugaController {
 
     @Operation(summary = "Добавить услугу")
     @PreAuthorize("hasRole('ROLE_MASTER')")
-    @PostMapping(path="/create/{userId}")
-    public ResponseEntity<?> createUsluga(@PathVariable Long userId, @RequestBody Usluga usluga) {
+    @PostMapping(path = "/create/{userId}")
+    public ResponseEntity<UslugaDTO> createUsluga(@PathVariable Long userId, @RequestBody UslugaDTO uslugaDTO) {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            usluga.setUser(user);
+            Usluga usluga = UslugaMapper.toEntity(uslugaDTO);
+            usluga.setUser(optionalUser.get());
             Usluga savedUsluga = uslugaRepository.save(usluga);
-            return ResponseEntity.ok(savedUsluga);
+            return ResponseEntity.ok(UslugaMapper.toDTO(savedUsluga));
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
-    /*@PutMapping("/{id}")
-    public ResponseEntity<Usluga> updateUsluga(@PathVariable(value="id") long id, @RequestBody Usluga newUsluga) {
-        Optional<Usluga> existingUslugaOptional = uslugaService.findByID(id);
-        if (existingUslugaOptional.isPresent()) {
-            Usluga existingUsluga = existingUslugaOptional.get();
-
-            // Обновление основных свойств услуги
-            existingUsluga.setName(newUsluga.getName());
-            existingUsluga.setDescription(newUsluga.getDescription());
-            existingUsluga.setCategory(newUsluga.getCategory());
-            existingUsluga.setCoordinates(newUsluga.getCoordinates());
-            existingUsluga.setLocation(newUsluga.getLocation());
-            existingUsluga.setPrice(newUsluga.getPrice());
-            existingUsluga.setDurationMinutes(newUsluga.getDurationMinutes());
-
-            // Обработка списка слотов
-            List<Slot> currentSlots = existingUsluga.getSlots();
-            List<Slot> newSlots = newUsluga.getSlots();
-
-            if (newSlots == null || newSlots.isEmpty()) {
-                // Если новый список слотов пуст, удаляем все существующие слоты
-                for (Slot currentSlot : currentSlots) {
-                    currentSlot.setUsluga(null); // Разрываем связь
-                }
-                currentSlots.clear(); // Очищаем коллекцию
-            } else {
-                // Удаление отсутствующих слотов
-                List<Slot> slotsToRemove = new ArrayList<>();
-                for (Slot currentSlot : currentSlots) {
-                    if (!newSlots.contains(currentSlot)) {
-                        currentSlot.setUsluga(null); // Разрываем связь
-                        slotsToRemove.add(currentSlot);
-                    }
-                }
-                currentSlots.removeAll(slotsToRemove);
-
-                // Добавление новых слотов
-                for (Slot newSlot : newSlots) {
-                    if (!currentSlots.contains(newSlot)) {
-                        newSlot.setUsluga(existingUsluga); // Устанавливаем связь
-                        currentSlots.add(newSlot);
-                    }
-                }
-            }
-
-            uslugaService.saveUsluga(existingUsluga);
-            return ResponseEntity.ok(existingUsluga);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }*/
-
+    @Operation(summary = "Обновить услугу")
     @PutMapping("/{id}")
-    public ResponseEntity<Usluga> updateUsluga(@PathVariable(value="id") long id, @RequestBody Usluga newUsluga) {
+    public ResponseEntity<UslugaDTO> updateUsluga(@PathVariable(value = "id") long id, @RequestBody UslugaDTO uslugaDTO) {
         Optional<Usluga> existingUslugaOptional = uslugaService.findByID(id);
         if (existingUslugaOptional.isPresent()) {
             Usluga existingUsluga = existingUslugaOptional.get();
-
-            // Обновление основных свойств услуги
-            existingUsluga.setName(newUsluga.getName());
-            existingUsluga.setDescription(newUsluga.getDescription());
-            existingUsluga.setCategory(newUsluga.getCategory());
-            existingUsluga.setCoordinates(newUsluga.getCoordinates());
-            existingUsluga.setLocation(newUsluga.getLocation());
-            existingUsluga.setPrice(newUsluga.getPrice());
-            existingUsluga.setDurationMinutes(newUsluga.getDurationMinutes());
-
-            // Обработка списка слотов
-            Map<Long, Slot> existingSlots = existingUsluga.getSlots().stream()
-                    .collect(Collectors.toMap(Slot::getId, slot -> slot));
-            Map<Long, Slot> newSlots = newUsluga.getSlots().stream()
-                    .collect(Collectors.toMap(Slot::getId, slot -> slot));
-
-            // Удаление отсутствующих в новом списке слотов
-            existingUsluga.getSlots().removeIf(slot -> !newSlots.containsKey(slot.getId()));
-
-            // Обновление существующих и добавление новых слотов
-            for (Slot newSlot : newUsluga.getSlots()) {
-                Slot existingSlot = existingSlots.get(newSlot.getId());
-                if (existingSlot != null) {
-                    // Обновляем существующий слот
-                    existingSlot.updateFrom(newSlot); // Метод для обновления данных слота из newSlot
-                } else {
-                    // Добавляем новый слот
-                    newSlot.setUsluga(existingUsluga);
-                    existingUsluga.getSlots().add(newSlot);
-                }
-            }
-
-            uslugaService.saveUsluga(existingUsluga);
-            return ResponseEntity.ok(existingUsluga);
+            Usluga updatedUsluga = UslugaMapper.toEntity(uslugaDTO);
+            updatedUsluga.setId(existingUsluga.getId());
+            updatedUsluga.setUser(existingUsluga.getUser()); // Preserve the existing user association
+            Usluga savedUsluga = uslugaService.saveUsluga(updatedUsluga);
+            return ResponseEntity.ok(UslugaMapper.toDTO(savedUsluga));
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -149,38 +66,50 @@ public class UslugaController {
 
     @Operation(summary = "Посмотреть все услуги")
     @GetMapping("/all")
-    public ResponseEntity<List<Usluga>> getAllUslugas() {
-        List<Usluga> Uslugas = uslugaRepository.findAll();
-        return ResponseEntity.ok(Uslugas);
+    public ResponseEntity<List<UslugaDTO>> getAllUslugas() {
+        List<Usluga> uslugas = uslugaRepository.findAll();
+        List<UslugaDTO> uslugaDTOs = uslugas.stream()
+                .map(UslugaMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(uslugaDTOs);
     }
 
-    @Operation(summary = "Посмотреть услуги определнного мастера")
+    @Operation(summary = "Посмотреть услуги определенного мастера")
     @PreAuthorize("hasRole('ROLE_MASTER')")
     @GetMapping("/{userId}")
-    public ResponseEntity<List<Usluga>> getUslugasByUserId(@PathVariable Long userId) {
+    public ResponseEntity<List<UslugaDTO>> getUslugasByUserId(@PathVariable Long userId) {
         List<Usluga> uslugas = uslugaService.getUslugas(userId);
-        return ResponseEntity.ok(uslugas);
+        List<UslugaDTO> uslugaDTOs = uslugas.stream()
+                .map(UslugaMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(uslugaDTOs);
     }
 
     @Operation(summary = "Удалить услугу")
     @PreAuthorize("hasRole('ROLE_MASTER')")
     @DeleteMapping("/{id}")
-    public String deleteUsluga(@PathVariable(value = "id") long Id) {
-        uslugaService.deleteUsluga(Id);
+    public String deleteUsluga(@PathVariable(value = "id") long id) {
+        uslugaService.deleteUsluga(id);
         return "Usluga Deleted";
     }
 
     @Operation(summary = "Поиск услуги по имени")
     @GetMapping("/search")
-    public ResponseEntity<List<Usluga>> searchUslugasByName(@RequestParam String name) {
+    public ResponseEntity<List<UslugaDTO>> searchUslugasByName(@RequestParam String name) {
         List<Usluga> uslugas = uslugaRepository.findByNameContainingIgnoreCase(name);
-        return ResponseEntity.ok(uslugas);
+        List<UslugaDTO> uslugaDTOs = uslugas.stream()
+                .map(UslugaMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(uslugaDTOs);
     }
 
-    @Operation(summary = "Поиск услуги по локации (название адреса и т. д.)")
+    @Operation(summary = "Поиск услуги по локации")
     @GetMapping("/city")
-    public ResponseEntity<List<Usluga>> getUslugasByLocation(@RequestParam String location) {
-        List<Usluga> Uslugas = uslugaRepository.findByLocation(location);
-        return ResponseEntity.ok(Uslugas);
+    public ResponseEntity<List<UslugaDTO>> getUslugasByLocation(@RequestParam String location) {
+        List<Usluga> uslugas = uslugaRepository.findByLocation(location);
+        List<UslugaDTO> uslugaDTOs = uslugas.stream()
+                .map(UslugaMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(uslugaDTOs);
     }
 }
