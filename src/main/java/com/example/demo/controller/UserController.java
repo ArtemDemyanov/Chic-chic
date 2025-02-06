@@ -2,18 +2,26 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.UserDTO;
 import com.example.demo.dto.UserPostDTO;
+import com.example.demo.dto.UslugaDTO;
 import com.example.demo.mapper.UserMapper;
+import com.example.demo.mapper.UslugaMapper;
+import com.example.demo.model.Review;
 import com.example.demo.model.User;
+import com.example.demo.model.Usluga;
 import com.example.demo.service.UserService;
+import com.example.demo.service.UslugaService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -21,10 +29,12 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final UslugaService uslugaService;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UslugaService uslugaService) {
         this.userService = userService;
+        this.uslugaService = uslugaService;
     }
 
     @Operation(summary = "Посмотреть всех пользователей")
@@ -119,5 +129,111 @@ public class UserController {
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
         Optional<User> userOptional = Optional.ofNullable(userService.findByEmail(email));
         return userOptional.map(UserMapper::toDTO).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{userId}/{uslugaId}/favorite")
+    public ResponseEntity<String> addUslugaToFavorites(@PathVariable Long userId, @PathVariable Long uslugaId) {
+        Optional<User> optionalUser = userService.findByID(userId);
+        Optional<Usluga> optionalUsluga = uslugaService.findByID(uslugaId);
+        if (optionalUser.isPresent() && optionalUsluga.isPresent()) {
+            User user = optionalUser.get();
+            Usluga usluga = optionalUsluga.get();
+            if (!user.getFavoriteUslugas().contains(usluga)) {
+                user.getFavoriteUslugas().add(usluga);
+                userService.saveUser(user);
+                return ResponseEntity.ok("Usluga added to favorites");
+            } else {
+                return ResponseEntity.badRequest().body("Usluga already in favorites");
+            }
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
+    @Operation(summary = "Удалить услугу из избранного")
+    @DeleteMapping("/{userId}/{uslugaId}/favorite")
+    public ResponseEntity<String> removeUslugaFromFavorites(@PathVariable Long userId, @PathVariable Long uslugaId) {
+        Optional<User> optionalUser = userService.findByID(userId);
+        Optional<Usluga> optionalUsluga = uslugaService.findByID(uslugaId);
+        if (optionalUser.isPresent() && optionalUsluga.isPresent()) {
+            User user = optionalUser.get();
+            Usluga Usluga = optionalUsluga.get();
+            user.getFavoriteUslugas().remove(Usluga);
+            userService.saveUser(user);
+            return ResponseEntity.ok("Usluga removed from favorites");
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Посмотреть услуги из избранного")
+    @GetMapping("/{userId}/favorite-Uslugas")
+    public ResponseEntity<List<Usluga>> getFavoriteUslugas(@PathVariable Long userId) {
+        Optional<User> optionalUser = userService.findByID(userId);
+        if (optionalUser.isPresent()) {
+            List<Usluga> favoriteUslugas = optionalUser.get().getFavoriteUslugas();
+            return ResponseEntity.ok(favoriteUslugas);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Добавить отзыв")
+    @PostMapping("/user/{reviewerId}/review/{reviewedUserId}")
+    public ResponseEntity<?> addReview(@PathVariable Long reviewerId, @PathVariable Long reviewedUserId, @RequestBody String content) {
+        Optional<User> optionalReviewer = userService.findByID(reviewerId);
+        Optional<User> optionalReviewedUser = userService.findByID(reviewedUserId);
+
+        if (optionalReviewer.isPresent() && optionalReviewedUser.isPresent()) {
+            User reviewer = optionalReviewer.get();
+            User reviewedUser = optionalReviewedUser.get();
+            Review review = new Review(reviewer, reviewedUser, content);
+            userService.saveReview(review);
+            return ResponseEntity.ok("Review added successfully.");
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Посмотреть отзывы на определенного мастера")
+    @GetMapping("/user/{userId}/reviews")
+    public ResponseEntity<?> getReviewsForUser(@PathVariable Long userId) {
+        Optional<User> optionalUser = userService.findByID(userId);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            List<Review> reviews = userService.getReviewsForUser(user);
+            return ResponseEntity.ok(reviews);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Удалить отзыв")
+    @DeleteMapping("/user/review/{reviewId}")
+    public ResponseEntity<?> deleteReview(@PathVariable Long reviewId) {
+        Optional<Review> optionalReview = userService.findReviewById(reviewId);
+
+        if (optionalReview.isPresent()) {
+            Review review = optionalReview.get();
+            String currentUsername = getCurrentUsername();
+            if (review.getReviewer().getEmail().equals(currentUsername)) {
+                userService.deleteReview(reviewId);
+                return ResponseEntity.ok("Review deleted successfully.");
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not allowed to delete this review.");
+            }
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    private String getCurrentUsername() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else {
+            return principal.toString();
+        }
     }
 }

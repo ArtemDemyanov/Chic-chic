@@ -27,4 +27,6 @@ public class ApplicationDTO {
     private Long slotId; // Reference to the associated Slot
 
     private Long userId; // Reference to the associated User
+
+    private Long masterId;
 }

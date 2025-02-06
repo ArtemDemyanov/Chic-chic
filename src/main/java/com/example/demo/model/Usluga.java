@@ -24,14 +24,12 @@ public class Usluga {
 
     @ManyToOne
     @JoinColumn(name = "пользователь_id")
-    @JsonBackReference
     private User user;
 
     private String location;
     private String coordinates;
 
     @OneToMany(mappedBy = "usluga", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
     private List<Slot> slots = new ArrayList<>();
 
     private double price;

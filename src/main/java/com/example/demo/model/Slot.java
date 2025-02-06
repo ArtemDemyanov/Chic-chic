@@ -37,25 +37,6 @@ public class Slot {
         super();
     }
 
-    public Slot(Date date, Time time, boolean isAvailable) {
-        this.date = date;
-        this.time = time;
-        this.isAvailable = isAvailable;
-    }
-
-    /**
-     * Updates the current slot with data from another slot.
-     */
-    public void updateFrom(Slot other) {
-        if (other.getDate() != null) {
-            this.date = other.getDate();
-        }
-        if (other.getTime() != null) {
-            this.time = other.getTime();
-        }
-        this.isAvailable = other.isAvailable();
-    }
-
     /**
      * Helper method to associate this slot with a Usluga.
      */

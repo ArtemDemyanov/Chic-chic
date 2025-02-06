@@ -90,6 +90,7 @@ public class PortfolioController {
         Portfolio portfolioToUpdate = existingPortfolio.get();
         List<byte[]> photos = new ArrayList<>();
 
+
         for (MultipartFile file : files) {
             if (file != null && !file.isEmpty()) {
                 try {

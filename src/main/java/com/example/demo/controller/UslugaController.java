@@ -49,6 +49,7 @@ public class UslugaController {
     }
 
     @Operation(summary = "Обновить услугу")
+    @PreAuthorize("hasRole('ROLE_MASTER')")
     @PutMapping("/{id}")
     public ResponseEntity<UslugaDTO> updateUsluga(@PathVariable(value = "id") long id, @RequestBody UslugaDTO uslugaDTO) {
         Optional<Usluga> existingUslugaOptional = uslugaService.findByID(id);
@@ -75,7 +76,6 @@ public class UslugaController {
     }
 
     @Operation(summary = "Посмотреть услуги определенного мастера")
-    @PreAuthorize("hasRole('ROLE_MASTER')")
     @GetMapping("/{userId}")
     public ResponseEntity<List<UslugaDTO>> getUslugasByUserId(@PathVariable Long userId) {
         List<Usluga> uslugas = uslugaService.getUslugas(userId);

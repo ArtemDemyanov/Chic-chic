@@ -58,10 +58,9 @@ public class ApplicationController {
             application.setUsluga(slot.getUsluga());
             application.setUslugaName(slot.getUsluga().getName());
             application.setUser(user);
+            application.setMaster(slot.getUsluga().getUser());
             application.setApplicantName(user.getName());
             application.setApplicantEmail(user.getEmail());
-            application.setDate(slot.getDate());
-            application.setTime(slot.getTime());
             application.setSlot(slot);
 
             // Update bidirectional relationship
@@ -90,8 +89,9 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationDTOs);
     }
 
-    @Operation(summary = "Посмотреть записи к определенному мастеру")
-    @GetMapping("/master/{userId}")
+    //было /master/{userId} стало /user/{userId}
+    @Operation(summary = "Посмотреть записи пользователя")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<ApplicationDTO>> getApplicationsForUser(@PathVariable Long userId) {
         List<Application> applications = applicationService.getApplicationsUser(userId);
         List<ApplicationDTO> applicationDTOs = applications.stream()
@@ -120,5 +120,17 @@ public class ApplicationController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    //новый метод, через него гетается записи к мастеру и оттуда слоты, на которые записались, для расписания
+    @Operation(summary = "Мастер смотрит записи на его услуги")
+    @PreAuthorize("hasRole('ROLE_MASTER')")
+    @GetMapping("/master/{masterId}")
+    public ResponseEntity<List<ApplicationDTO>> getApplicationsByMaster(@PathVariable Long masterId) {
+        List<Application> applications = applicationService.getApplicationsByMaster(masterId);
+        List<ApplicationDTO> applicationDTOs = applications.stream()
+                .map(ApplicationMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(applicationDTOs);
     }
 }

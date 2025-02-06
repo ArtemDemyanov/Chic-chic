@@ -13,10 +13,9 @@ public class ApplicationMapper {
         dto.setApplicantName(application.getApplicantName());
         dto.setUslugaName(application.getUslugaName());
         dto.setApplicantEmail(application.getApplicantEmail());
-        dto.setDate(application.getDate());
-        dto.setTime(application.getTime());
         dto.setSlotId(application.getSlot() != null ? application.getSlot().getId() : null);
         dto.setUserId(application.getUser() != null ? application.getUser().getId() : null);
+        dto.setMasterId(application.getMaster() != null ? application.getMaster().getId() : null);
         return dto;
     }
 
@@ -27,8 +26,6 @@ public class ApplicationMapper {
         application.setApplicantName(dto.getApplicantName());
         application.setUslugaName(dto.getUslugaName());
         application.setApplicantEmail(dto.getApplicantEmail());
-        application.setDate(dto.getDate());
-        application.setTime(dto.getTime());
         return application;
     }
 }

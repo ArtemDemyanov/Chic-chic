@@ -16,4 +16,6 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     List<Application> findByUserId(Long userId);
 
     boolean existsByUserAndUsluga(User user, Usluga usluga);
+
+    List<Application> findByMasterId(Long masterId);
 }

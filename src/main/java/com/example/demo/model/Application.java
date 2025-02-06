@@ -27,10 +27,6 @@ public class Application {
 
     private String applicantEmail;
 
-    private Date date;
-
-    private Time time;
-
     @OneToOne
     @JoinColumn(name = "slot_id", nullable = false)
     private Slot slot;
@@ -39,16 +35,21 @@ public class Application {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "master_id", nullable = false)
+    private User master;
+
     public Application() {
         super();
     }
 
-    public Application(String applicantName, String uslugaName, String applicantEmail, Usluga usluga, User user) {
+    public Application(String applicantName, String uslugaName, String applicantEmail, Usluga usluga, User user, User master) {
         this.usluga = usluga;
         this.applicantName = applicantName;
         this.uslugaName = uslugaName;
         this.applicantEmail = applicantEmail;
         this.user = user;
+        this.master = master;
     }
 
     public void setUser(User user) {
