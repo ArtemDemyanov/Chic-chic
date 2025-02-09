@@ -14,13 +14,14 @@ public class Portfolio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @lombok.Getter
+    @lombok.Setter
     Long id;
 
     @lombok.Setter
     @lombok.Getter
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "пользователь_id")
-    @JsonBackReference
+    //@JsonBackReference
     User user;
 
     @lombok.Setter
@@ -86,4 +87,5 @@ public class Portfolio {
             throw new RuntimeException("Ошибка при десериализации списка фотографий", e);
         }
     }
+
 }

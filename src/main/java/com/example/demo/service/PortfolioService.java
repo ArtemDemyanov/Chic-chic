@@ -32,8 +32,8 @@ public class PortfolioService {
         return portfolioRepository.findByUserId(userId);
     }
 
-    public void savePortfolio(Portfolio newPortfolio){
-        portfolioRepository.save(newPortfolio);
+    public Portfolio savePortfolio(Portfolio newPortfolio){
+        return portfolioRepository.save(newPortfolio);
     }
 
     public Optional<Portfolio> findById(Long id){

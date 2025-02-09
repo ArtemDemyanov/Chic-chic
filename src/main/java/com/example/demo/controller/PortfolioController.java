@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.PortfolioDTO;
+import com.example.demo.mapper.PortfolioMapper;
 import com.example.demo.model.Portfolio;
 import com.example.demo.model.User;
 import com.example.demo.repository.PortfolioRepository;
@@ -34,13 +36,14 @@ public class PortfolioController {
 
     @Operation(summary = "Создать портфолио")
     @PostMapping(path="/create/{userId}")
-    public ResponseEntity<?> createPortfolio(@PathVariable Long userId, @RequestBody Portfolio portfolio) {
+    public ResponseEntity<?> createPortfolio(@PathVariable Long userId, @RequestBody PortfolioDTO portfolioDTO) {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isPresent()) {
+            Portfolio portfolio = PortfolioMapper.toEntity(portfolioDTO);
             User user = optionalUser.get();
             portfolio.setUser(user);
             Portfolio savedPortfolio = portfolioRepository.save(portfolio);
-            return ResponseEntity.ok(savedPortfolio);
+            return ResponseEntity.ok(PortfolioMapper.toDTO(savedPortfolio));
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -48,9 +51,11 @@ public class PortfolioController {
 
     @Operation(summary = "Посмотреть портфолио определенного мастера")
     @GetMapping("/portfolio/{id}")
-    public Optional<Portfolio> getPortfolioByMasterId(@PathVariable(value = "id") long masterId) {
+    public ResponseEntity<Optional<PortfolioDTO>> getPortfolioByMasterId(@PathVariable(value = "id") long masterId) {
         //Optional<Portfolio> portfolio = portfolioService.findPortfolioByUserId(masterId);
-        return portfolioService.findPortfolioByUserId(masterId);
+        Optional<PortfolioDTO> portfolioDTO = portfolioService.findPortfolioByUserId(masterId).map(PortfolioMapper::toDTO);
+        return ResponseEntity.ok(portfolioDTO);
+        //return portfolioService.findPortfolioByUserId(masterId);
     }
 
     @Operation(summary = "Удалить портфолио")
@@ -59,38 +64,69 @@ public class PortfolioController {
         portfolioService.deletePortfolio(Id);
         return "Portfolio Deleted";
     }
+    //не получилось протестировать через Postman, Катя пожалуйста помоги
+    /*@PutMapping(path = "/portfolio/{id}", consumes = "multipart/form-data")
+    public ResponseEntity<PortfolioDTO> updatePortfolio(
+            @PathVariable(value = "id") Long id,
+            @RequestPart("portfolioDTO") PortfolioDTO portfolioDTO,
+            @RequestPart("photos") List<MultipartFile> files) {
 
-   /* @Operation(summary = "Обновить портфолио")
-    @PutMapping("/portfolio/{id}")
-    public ResponseEntity<Optional<Portfolio>> updatePortfolio(@PathVariable(value="id") long Id, @RequestBody Portfolio newPortfolio ){
-        Optional<Portfolio> existingPortfolio = portfolioService.findByID(Id);
-        if (existingPortfolio.isPresent()) {
-            Portfolio portfolioToUpdate = existingPortfolio.get();
-            portfolioToUpdate.setPhotos(newPortfolio.getPhotos());
-            portfolioToUpdate.setDescription(newPortfolio.getDescription());
-            portfolioService.savePortfolio(portfolioToUpdate);
-            return new ResponseEntity<>(Optional.ofNullable(portfolioToUpdate), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(Optional.empty(), HttpStatus.NOT_FOUND);
+        // Находим существующее портфолио по ID
+        Optional<Portfolio> existingPortfolioOptional = portfolioService.findByID(id);
+        if (!existingPortfolioOptional.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    } */
 
+        // Получаем существующее портфолио
+        Portfolio portfolioToUpdate = existingPortfolioOptional.get();
+
+        // Обработка файлов (если они есть)
+        List<byte[]> photos = new ArrayList<>();
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                if (file != null && !file.isEmpty()) {
+                    try {
+                        photos.add(file.getBytes());
+                    } catch (IOException e) {
+                        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                }
+            }
+        }
+
+        // Преобразуем DTO в сущность Portfolio
+        Portfolio updatedPortfolio = PortfolioMapper.toEntity(portfolioDTO);
+        updatedPortfolio.setId(portfolioToUpdate.getId()); // Сохраняем существующий ID
+        updatedPortfolio.setPhotosAsList(photos); // Устанавливаем новые фото
+        updatedPortfolio.setDescription(portfolioDTO.getDescription()); // Обновляем описание
+
+        // Сохраняем обновленное портфолио
+        Portfolio savedPortfolio = portfolioService.savePortfolio(updatedPortfolio);
+
+        // Преобразуем сохраненное портфолио обратно в DTO и возвращаем клиенту
+        PortfolioDTO responseDTO = PortfolioMapper.toDTO(savedPortfolio);
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+    }*/
+
+    //Работает, но фотки не отображаются, скорее всего наш косяк, Катя помоги
     @PutMapping(path = "/portfolio/{id}", consumes = "multipart/form-data")
     public ResponseEntity<?> updatePortfolio(
             @PathVariable(value = "id") long Id,
             @RequestPart("photos") List<MultipartFile> files,
             @RequestPart("description") String description) {
 
+        // Fetch the existing portfolio by ID
         Optional<Portfolio> existingPortfolio = portfolioService.findByID(Id);
 
         if (!existingPortfolio.isPresent()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
+        // Map the existing portfolio to DTO
         Portfolio portfolioToUpdate = existingPortfolio.get();
+
+        // Collect the photos from the MultipartFile
         List<byte[]> photos = new ArrayList<>();
-
-
         for (MultipartFile file : files) {
             if (file != null && !file.isEmpty()) {
                 try {
@@ -101,10 +137,17 @@ public class PortfolioController {
             }
         }
 
+        // Update the fields of the portfolio with new data
         portfolioToUpdate.setPhotosAsList(photos);
         portfolioToUpdate.setDescription(description);
+
+        // Save the updated portfolio entity
         portfolioService.savePortfolio(portfolioToUpdate);
-        return new ResponseEntity<>(portfolioToUpdate, HttpStatus.OK);
+
+        // Map the updated portfolio entity back to DTO
+        PortfolioDTO updatedPortfolioDTO = PortfolioMapper.toDTO(portfolioToUpdate);
+
+        return new ResponseEntity<>(updatedPortfolioDTO, HttpStatus.OK);
     }
 
 }

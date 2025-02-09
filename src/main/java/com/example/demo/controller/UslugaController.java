@@ -56,7 +56,6 @@ public class UslugaController {
         if (existingUslugaOptional.isPresent()) {
             Usluga existingUsluga = existingUslugaOptional.get();
             Usluga updatedUsluga = UslugaMapper.toEntity(uslugaDTO);
-            updatedUsluga.setId(existingUsluga.getId());
             updatedUsluga.setUser(existingUsluga.getUser()); // Preserve the existing user association
             Usluga savedUsluga = uslugaService.saveUsluga(updatedUsluga);
             return ResponseEntity.ok(UslugaMapper.toDTO(savedUsluga));

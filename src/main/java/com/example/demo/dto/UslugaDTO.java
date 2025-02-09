@@ -17,4 +17,5 @@ public class UslugaDTO {
     private List<SlotDTO> slots; // Use SlotDTO instead of Slot
     private double price;
     private int durationMinutes;
+
 }

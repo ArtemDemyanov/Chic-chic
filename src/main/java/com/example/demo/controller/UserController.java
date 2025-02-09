@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ReviewDTO;
 import com.example.demo.dto.UserDTO;
 import com.example.demo.dto.UserPostDTO;
 import com.example.demo.dto.UslugaDTO;
+import com.example.demo.mapper.ReviewMapper;
 import com.example.demo.mapper.UserMapper;
 import com.example.demo.mapper.UslugaMapper;
 import com.example.demo.model.Review;
@@ -23,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
@@ -75,6 +78,7 @@ public class UserController {
             User existingUser = existingUserOptional.get();
             User updatedUser = UserMapper.toEntity(updatedUserDTO);
             updatedUser.setId(existingUser.getId());
+            updatedUser.setTelephoneNumber(existingUser.getTelephoneNumber());
             updatedUser.setPassword(existingUser.getPassword()); // Preserve the hashed password
             updatedUser.setProfilePicture(existingUser.getProfilePicture()); // Preserve the profile picture
 
@@ -169,11 +173,14 @@ public class UserController {
 
     @Operation(summary = "Посмотреть услуги из избранного")
     @GetMapping("/{userId}/favorite-Uslugas")
-    public ResponseEntity<List<Usluga>> getFavoriteUslugas(@PathVariable Long userId) {
+    public ResponseEntity<List<UslugaDTO>> getFavoriteUslugas(@PathVariable Long userId) {
         Optional<User> optionalUser = userService.findByID(userId);
         if (optionalUser.isPresent()) {
             List<Usluga> favoriteUslugas = optionalUser.get().getFavoriteUslugas();
-            return ResponseEntity.ok(favoriteUslugas);
+            List<UslugaDTO> dtoList = favoriteUslugas.stream()
+                    .map(UslugaMapper::toDTO)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dtoList);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -203,7 +210,8 @@ public class UserController {
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             List<Review> reviews = userService.getReviewsForUser(user);
-            return ResponseEntity.ok(reviews);
+            List<ReviewDTO> dtoList = reviews.stream().map(ReviewMapper::toDTO).collect(Collectors.toList());
+            return ResponseEntity.ok(dtoList);
         } else {
             return ResponseEntity.notFound().build();
         }
