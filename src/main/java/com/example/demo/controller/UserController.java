@@ -128,6 +128,16 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "Посмотреть всех пользователей с ролью 'мастер'")
+    @GetMapping("/masters")
+    public ResponseEntity<List<UserDTO>> getMasters() {
+        List<UserDTO> masters = userService.getUsers().stream()
+                .filter(user -> "master".equalsIgnoreCase(user.getRole()))
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(masters);
+    }
+
     @Operation(summary = "Получить информацию по определенному пользователю по его почте")
     @GetMapping("/email/{email}")
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
