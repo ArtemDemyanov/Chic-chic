@@ -18,5 +18,5 @@ public class SlotDTO {
 
     private Time time;
 
-    private boolean isAvailable = true;
+    private Boolean isAvailable = true;
 }

@@ -31,7 +31,7 @@ public class Slot {
     private Time time;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE") // Default value set in the database
-    private boolean isAvailable = true;
+    private Boolean isAvailable = true;
 
     public Slot() {
         super();

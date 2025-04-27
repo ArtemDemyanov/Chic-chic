@@ -16,6 +16,16 @@ public class ApplicationMapper {
         dto.setSlotId(application.getSlot() != null ? application.getSlot().getId() : null);
         dto.setUserId(application.getUser() != null ? application.getUser().getId() : null);
         dto.setMasterId(application.getMaster() != null ? application.getMaster().getId() : null);
+
+        if (application.getSlot() != null) {
+            if (application.getSlot().getDate() != null) {
+                dto.setDate(application.getSlot().getDate()); // Можно отформатировать
+            }
+            if (application.getSlot().getTime() != null) {
+                dto.setTime(application.getSlot().getTime()); // Можно укоротить до HH:mm
+            }
+        }
+
         return dto;
     }
 
