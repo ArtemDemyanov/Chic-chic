@@ -12,10 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,13 +53,39 @@ public class PortfolioController {
         }
     }
 
-    @Operation(summary = "Посмотреть портфолио определенного мастера")
+    /*@Operation(summary = "Посмотреть портфолио определенного мастера")
     @GetMapping("/portfolio/{id}")
     public ResponseEntity<Optional<PortfolioDTO>> getPortfolioByMasterId(@PathVariable(value = "id") long masterId) {
-        //Optional<Portfolio> portfolio = portfolioService.findPortfolioByUserId(masterId);
         Optional<PortfolioDTO> portfolioDTO = portfolioService.findPortfolioByUserId(masterId).map(PortfolioMapper::toDTO);
         return ResponseEntity.ok(portfolioDTO);
-        //return portfolioService.findPortfolioByUserId(masterId);
+    }*/
+
+    @Operation(summary = "Посмотреть портфолио определенного мастера")
+    @GetMapping("/portfolio/{id}")
+    public ResponseEntity<PortfolioDTO> getPortfolioByMasterId(
+            @PathVariable(value = "id") long masterId,
+            Principal principal) {
+
+        // 1) по Principal.getName() (email/login) находим пользователя
+        User me = userRepository.findByEmail(principal.getName());
+
+        if (me == null) {
+            throw new UsernameNotFoundException(
+                    "User not found: " + principal.getName()
+            );
+        }
+
+        Long requesterId = me.getId();
+        boolean isAdmin = me.getRole().equals("ROLE_ADMIN");
+
+        // 3) Берём из сервиса
+        Optional<Portfolio> opt = portfolioService.findForViewer(masterId, requesterId, isAdmin);
+
+        // 4) Маппим и возвращаем
+        return opt
+                .map(PortfolioMapper::toDTO)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Удалить портфолио")

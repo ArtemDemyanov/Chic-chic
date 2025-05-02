@@ -68,7 +68,7 @@ public class User implements Serializable {
 	@OneToMany(mappedBy = "reviewedUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Review> receivedReviews = new ArrayList<>();
 
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false) // Disable orphan removal
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true) // Disable orphan removal
 	private List<Application> applications = new ArrayList<>();
 
 	@Column(nullable = false, updatable = false)
@@ -80,6 +80,9 @@ public class User implements Serializable {
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	private Date updatedAt;
+
+	@Column(nullable = false)
+	private boolean isBanned = Boolean.FALSE;
 
 	public User() {
 		super();
@@ -104,4 +107,5 @@ public class User implements Serializable {
 		applications.remove(application);
 		application.setUser(null);
 	}
+
 }

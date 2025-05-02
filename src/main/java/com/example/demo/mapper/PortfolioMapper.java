@@ -1,7 +1,10 @@
 package com.example.demo.mapper;
 
 import com.example.demo.dto.PortfolioDTO;
+import com.example.demo.model.ModerationStatus;
 import com.example.demo.model.Portfolio;
+
+import java.util.stream.Collectors;
 
 public class PortfolioMapper {
     public static PortfolioDTO toDTO(Portfolio portfolio) {

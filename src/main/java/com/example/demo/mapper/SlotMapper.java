@@ -10,7 +10,7 @@ public class SlotMapper {
         dto.setUslugaId(slot.getUsluga() != null ? slot.getUsluga().getId() : null); // Map only the Usluga ID
         dto.setDate(slot.getDate());
         dto.setTime(slot.getTime());
-        dto.setAvailable(slot.isAvailable());
+        dto.setIsAvailable(slot.getIsAvailable());
         return dto;
     }
 
@@ -20,7 +20,7 @@ public class SlotMapper {
         slot.setId(dto.getId());
         slot.setDate(dto.getDate());
         slot.setTime(dto.getTime());
-        slot.setAvailable(dto.isAvailable());
+        slot.setIsAvailable(dto.getIsAvailable());
         return slot;
     }
 }

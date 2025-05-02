@@ -30,6 +30,12 @@ public class Review {
     @lombok.Getter
     private String content;
 
+    @lombok.Setter
+    @lombok.Getter
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private ModerationStatus status = ModerationStatus.PENDING;
+
     public Review() {
         super();
     }

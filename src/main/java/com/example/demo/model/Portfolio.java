@@ -43,6 +43,12 @@ public class Portfolio {
     @lombok.Getter
     String description;
 
+    @lombok.Setter
+    @lombok.Getter
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private ModerationStatus status = ModerationStatus.PENDING;
+
     public Portfolio(){
         super();
     }

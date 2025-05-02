@@ -13,6 +13,8 @@ public class ApplicationMapper {
         dto.setApplicantName(application.getApplicantName());
         dto.setUslugaName(application.getUslugaName());
         dto.setApplicantEmail(application.getApplicantEmail());
+        dto.setDate(application.getSlot().getDate() != null ? application.getSlot().getDate() : null);
+        dto.setTime(application.getSlot().getTime() != null ? application.getSlot().getTime() : null);
         dto.setSlotId(application.getSlot() != null ? application.getSlot().getId() : null);
         dto.setUserId(application.getUser() != null ? application.getUser().getId() : null);
         dto.setMasterId(application.getMaster() != null ? application.getMaster().getId() : null);

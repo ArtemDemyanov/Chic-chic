@@ -21,8 +21,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -213,7 +215,7 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Посмотреть отзывы на определенного мастера")
+    /*@Operation(summary = "Посмотреть отзывы на определенного мастера")
     @GetMapping("/user/{userId}/reviews")
     public ResponseEntity<?> getReviewsForUser(@PathVariable Long userId) {
         Optional<User> optionalUser = userService.findByID(userId);
@@ -225,6 +227,30 @@ public class UserController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }*/
+
+    @Operation(summary = "Посмотреть отзывы на определенного мастера")
+    @GetMapping("/user/{userId}/reviews")
+    public ResponseEntity<?> getReviewsForUser(@PathVariable Long userId, Principal principal) {
+
+        // 1) находим профиль мастера
+        User reviewedUser = userService.findByID(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        // 2) находим того, кто делает запрос
+        User requester = userService.findByEmail(principal.getName());
+        if (requester == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        // 3) получаем список в зависимости от роли
+        List<Review> reviews = userService.getReviewsForViewer(reviewedUser, requester);
+
+        List<ReviewDTO> dtoList = reviews.stream()
+                .map(ReviewMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtoList);
     }
 
     @Operation(summary = "Удалить отзыв")

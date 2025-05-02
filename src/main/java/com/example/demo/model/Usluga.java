@@ -35,6 +35,12 @@ public class Usluga {
     private double price;
     private int durationMinutes;
 
+    @lombok.Setter
+    @lombok.Getter
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private ModerationStatus status = ModerationStatus.PENDING;
+
     public Usluga() {
         super();
     }

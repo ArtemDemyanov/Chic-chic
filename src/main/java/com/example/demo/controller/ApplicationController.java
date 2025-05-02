@@ -47,7 +47,7 @@ public class ApplicationController {
 
         if (optionalUser.isPresent() && optionalSlot.isPresent()) {
             Slot slot = optionalSlot.get();
-            if (!slot.isAvailable()) {
+            if (!slot.getIsAvailable()) {
                 return ResponseEntity.badRequest().body("Этот слот уже занят.");
             }
 
@@ -67,7 +67,7 @@ public class ApplicationController {
             user.addApplication(application); // Use the helper method
 
             // Mark the slot as unavailable
-            slot.setAvailable(false);
+            slot.setIsAvailable(false);
             slotRepository.save(slot);
 
             // Save the application
@@ -111,11 +111,18 @@ public class ApplicationController {
             Slot slot = application.getSlot();
 
             if (slot != null) {
-                slot.setAvailable(true); // Mark the slot as available
+                slot.setIsAvailable(true);
+                slot.setApplication(null); // <-- разрываем связь между Slot и Application
                 slotRepository.save(slot);
             }
 
-            applicationRepository.delete(application);
+            User user = application.getUser();
+            if (user != null) {
+                user.getApplications().remove(application); // удаляем из коллекции пользователя
+            }
+
+            applicationRepository.delete(application); // теперь можно удалять
+
             return ResponseEntity.ok("Application withdrawn and slot made available");
         } else {
             return ResponseEntity.notFound().build();
