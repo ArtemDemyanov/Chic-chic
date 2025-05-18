@@ -15,11 +15,4 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByReviewedUser(User user);
 
     List<Review> findByReviewedUserAndStatus(User user, ModerationStatus status);
-
-
-    // для личного кабинета — свои все, вне зависимости от статуса
-    List<Review> findByAuthorId(Long authorId);
-
-    // для админа — все или выборочно по статусу
-    List<Review> findByStatusIn(List<ModerationStatus> statuses);
 }

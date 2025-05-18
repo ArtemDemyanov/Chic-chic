@@ -1,6 +1,5 @@
 package com.example.demo.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.io.*;
@@ -21,7 +20,6 @@ public class Portfolio {
     @lombok.Getter
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "пользователь_id")
-    //@JsonBackReference
     User user;
 
     @lombok.Setter

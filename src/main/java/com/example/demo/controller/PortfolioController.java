@@ -23,7 +23,7 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-@PreAuthorize("hasRole('ROLE_MASTER')")
+
 @RestController
 public class PortfolioController {
 
@@ -38,6 +38,7 @@ public class PortfolioController {
         this.portfolioRepository = portfolioRepository;
     }
 
+    @PreAuthorize("hasRole('ROLE_MASTER')")
     @Operation(summary = "Создать портфолио")
     @PostMapping(path="/create/{userId}")
     public ResponseEntity<?> createPortfolio(@PathVariable Long userId, @RequestBody PortfolioDTO portfolioDTO) {
@@ -76,7 +77,7 @@ public class PortfolioController {
         }
 
         Long requesterId = me.getId();
-        boolean isAdmin = me.getRole().equals("ROLE_ADMIN");
+        boolean isAdmin = me.getRole().equals("admin");
 
         // 3) Берём из сервиса
         Optional<Portfolio> opt = portfolioService.findForViewer(masterId, requesterId, isAdmin);
@@ -88,6 +89,7 @@ public class PortfolioController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasRole('ROLE_MASTER')")
     @Operation(summary = "Удалить портфолио")
     @DeleteMapping("/portfolio/{id}")
     public String deletePortfolio(@PathVariable(value = "id") long Id) {
@@ -139,6 +141,7 @@ public class PortfolioController {
     }*/
 
     //Работает, но фотки не отображаются, скорее всего наш косяк, Катя помоги
+    @PreAuthorize("hasRole('ROLE_MASTER')")
     @PutMapping(path = "/portfolio/{id}", consumes = "multipart/form-data")
     public ResponseEntity<?> updatePortfolio(
             @PathVariable(value = "id") long Id,

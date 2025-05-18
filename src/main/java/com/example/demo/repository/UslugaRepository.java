@@ -24,10 +24,4 @@ public interface UslugaRepository extends JpaRepository<Usluga, Long> {
 
     // для публичных запросов — только одобренные
     List<Usluga> findByStatus(ModerationStatus status);
-
-    // для личного кабинета — свои все, вне зависимости от статуса
-    List<Usluga> findByAuthorId(Long authorId);
-
-    // для админа — все или выборочно по статусу
-    List<Usluga> findByStatusIn(List<ModerationStatus> statuses);
 }

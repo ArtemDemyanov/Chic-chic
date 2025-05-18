@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -42,7 +43,23 @@ public class UserController {
         this.uslugaService = uslugaService;
     }
 
+    @Operation(summary = "Изменить роль пользователя (только для админа)")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping("/{id}/role")
+    public ResponseEntity<?> changeUserRole(@PathVariable Long id, @RequestBody String newRole) {
+        Optional<User> optionalUser = userService.findByID(id);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setRole(newRole);
+            userService.saveUser(user);
+            return ResponseEntity.ok("User role updated successfully.");
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @Operation(summary = "Посмотреть всех пользователей")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping
     public ResponseEntity<?> getUsers() {
         return ResponseEntity.ok(userService.getUsers().stream()

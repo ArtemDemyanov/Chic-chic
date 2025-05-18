@@ -28,10 +28,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             System.out.println(currentUser.getEmail());
             List<GrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority(currentUser.getRole()));
-            UserDetails user = new org.springframework.security.core
-                    .userdetails.User(email, currentUser.getPassword()
-                    , true, true, true, true,
-                    authorities);
+            UserDetails user = new org.springframework.security.core.userdetails.User(
+                    email,
+                    currentUser.getPassword(),
+                    !currentUser.isBanned(), // enabled
+                    true,                   // accountNonExpired
+                    true,                   // credentialsNonExpired
+                    !currentUser.isBanned(), // accountNonLocked
+                    authorities
+            );
 
             return user;
         } else {

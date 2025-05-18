@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/admin")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class AdminController {
 
     private final AdminService adminService;
@@ -46,5 +46,15 @@ public class AdminController {
     @PostMapping("/usluga/{id}/reject")
     public void rejectUsluga(@PathVariable Long id) {
         adminService.rejectUsluga(id);
+    }
+
+    @PostMapping("/user/{id}/ban")
+    public void banUser(@PathVariable Long id) {
+        adminService.banUser(id, true);
+    }
+
+    @PostMapping("/user/{id}/unban")
+    public void unbanUser(@PathVariable Long id) {
+        adminService.banUser(id, false);
     }
 }

@@ -56,7 +56,7 @@ public class UserService {
 	}*/
 
 	public List<Review> getReviewsForViewer(User reviewedUser, User requester) {
-		boolean isAdmin = "ROLE_ADMIN".equals(requester.getRole());
+		boolean isAdmin = "admin".equals(requester.getRole());
 		if (isAdmin) {
 			return reviewRepository.findByReviewedUser(reviewedUser);
 		} else {
