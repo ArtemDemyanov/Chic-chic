@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -58,6 +59,17 @@ public class UserService {
 	public List<Review> getReviewsForViewer(User reviewedUser, User requester) {
 		boolean isAdmin = "admin".equals(requester.getRole());
 		if (isAdmin) {
+			return reviewRepository.findByReviewedUser(reviewedUser);
+		} else {
+			return reviewRepository.findByReviewedUserAndStatus(reviewedUser, ModerationStatus.APPROVED);
+		}
+	}
+
+	public List<Review> getUserReviews(User reviewedUser, User requester) {
+		boolean isAdmin = "admin".equals(requester.getRole());
+		boolean isAuthor = Objects.equals(reviewedUser.getId(), requester.getId());
+
+		if (isAdmin || isAuthor) {
 			return reviewRepository.findByReviewedUser(reviewedUser);
 		} else {
 			return reviewRepository.findByReviewedUserAndStatus(reviewedUser, ModerationStatus.APPROVED);

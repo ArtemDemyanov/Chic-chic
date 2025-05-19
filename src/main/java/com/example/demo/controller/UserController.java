@@ -270,6 +270,30 @@ public class UserController {
         return ResponseEntity.ok(dtoList);
     }
 
+    @Operation(summary = "Посмотреть отзывы, которые оставил пользователь")
+    @GetMapping("/user/{userId}/user_reviews")
+    public ResponseEntity<?> getReviewsByUser(@PathVariable Long userId, Principal principal) {
+
+        // 1) Получаем автора отзывов
+        User reviewedUser = userService.findByID(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        // 2) находим того, кто делает запрос
+        User requester = userService.findByEmail(principal.getName());
+        if (requester == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        // 3) получаем список в зависимости от роли
+        List<Review> reviews = userService.getUserReviews(reviewedUser, requester);
+
+        List<ReviewDTO> dtoList = reviews.stream()
+                .map(ReviewMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtoList);
+    }
+
     @Operation(summary = "Удалить отзыв")
     @DeleteMapping("/user/review/{reviewId}")
     public ResponseEntity<?> deleteReview(@PathVariable Long reviewId) {
