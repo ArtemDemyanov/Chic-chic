@@ -21,6 +21,7 @@ public class UslugaMapper {
         dto.setCoordinates(usluga.getCoordinates());
         dto.setPrice(usluga.getPrice());
         dto.setDurationMinutes(usluga.getDurationMinutes());
+        dto.setStatus(usluga.getStatus());
 
         // Map slots
         if (usluga.getSlots() != null) {
@@ -43,6 +44,7 @@ public class UslugaMapper {
         usluga.setCoordinates(dto.getCoordinates());
         usluga.setPrice(dto.getPrice());
         usluga.setDurationMinutes(dto.getDurationMinutes());
+        usluga.setStatus(dto.getStatus());
 
         // Map slots
         if (dto.getSlots() != null) {

@@ -70,9 +70,9 @@ public class UserService {
 		boolean isAuthor = Objects.equals(reviewedUser.getId(), requester.getId());
 
 		if (isAdmin || isAuthor) {
-			return reviewRepository.findByReviewedUser(reviewedUser);
+			return reviewRepository.findByReviewer(reviewedUser);
 		} else {
-			return reviewRepository.findByReviewedUserAndStatus(reviewedUser, ModerationStatus.APPROVED);
+			return reviewRepository.findByReviewerAndStatus(reviewedUser, ModerationStatus.APPROVED);
 		}
 	}
 

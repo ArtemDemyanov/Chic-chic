@@ -17,6 +17,7 @@ public class UserMapper {
         dto.setProfilePicture(user.getProfilePicture());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setBanned(user.isBanned());
         return dto;
     }
 
@@ -39,6 +40,7 @@ public class UserMapper {
         user.setTelephoneNumber(dto.getTelephoneNumber());
         user.setRole(dto.getRole());
         user.setProfilePicture(dto.getProfilePicture());
+        user.setBanned(dto.isBanned());
         return user;
     }
 }

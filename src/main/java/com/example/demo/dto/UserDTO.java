@@ -16,4 +16,5 @@ public class UserDTO {
     private byte[] profilePicture;
     private Date createdAt;
     private Date updatedAt;
+    private boolean isBanned;
 }

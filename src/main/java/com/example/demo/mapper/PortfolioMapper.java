@@ -15,6 +15,7 @@ public class PortfolioMapper {
         dto.setCertificates(portfolio.getCertificates());
         dto.setPhotos(portfolio.getPhotosAsList());
         dto.setDescription(portfolio.getDescription());
+        dto.setStatus(portfolio.getStatus());
         return dto;
     }
 
@@ -24,6 +25,7 @@ public class PortfolioMapper {
         portfolio.setCertificates(dto.getCertificates());
         portfolio.setPhotosAsList(dto.getPhotos());
         portfolio.setDescription(dto.getDescription());
+        portfolio.setStatus(dto.getStatus());
         return portfolio;
     }
 }
