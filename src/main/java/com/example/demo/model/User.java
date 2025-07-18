@@ -1,8 +1,9 @@
 package com.example.demo.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -14,8 +15,10 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table(name = "Пользователи")
+@Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
+@Getter
+@Setter
 public class User implements Serializable {
 
 	@Serial
@@ -23,74 +26,50 @@ public class User implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@lombok.Getter
 	private Long id;
 
-	@lombok.Setter
-	@lombok.Getter
 	@NotBlank
 	private String name;
 
-	@lombok.Setter
-	@lombok.Getter
 	@NotBlank
-	@Column(unique=true)
+	@Column(unique = true)
 	private String email;
 
-	@lombok.Setter
-	@lombok.Getter
 	@NotBlank
-	@Column(unique=true)
-	private String telephone_number;
+	@Column(unique = true)
+	private String telephoneNumber;
 
-	@lombok.Setter
-	@lombok.Getter
 	@NotBlank
 	private String password;
 
-	@lombok.Setter
-	@lombok.Getter
 	@Lob
 	@Column(columnDefinition = "LONGBLOB")
 	private byte[] profilePicture;
 
-	@lombok.Setter
-	@lombok.Getter
 	private String role;
 
-	@lombok.Setter
-	@lombok.Getter
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-	@JsonManagedReference
 	private Portfolio portfolio;
 
-	@lombok.Getter
-	@lombok.Setter
 	@ManyToMany
 	@JoinTable(
-			name = "Избранное",
-			joinColumns = @JoinColumn(name = "пользватель_id"),
-			inverseJoinColumns = @JoinColumn(name = "услуга_id")
+			name = "user_favorite_uslugas",
+			joinColumns = @JoinColumn(name = "user_id"),
+			inverseJoinColumns = @JoinColumn(name = "usluga_id")
 	)
 	private List<Usluga> favoriteUslugas = new ArrayList<>();
 
-	@lombok.Setter
-	@lombok.Getter
-	@OneToMany(mappedBy="user", cascade = CascadeType.ALL)
-	@JsonManagedReference
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<Usluga> uslugas = new ArrayList<>();
 
-	@lombok.Setter
-	@lombok.Getter
-	//@JsonManagedReference
 	@OneToMany(mappedBy = "reviewer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Review> writtenReviews = new ArrayList<>();
 
-	@lombok.Setter
-	@lombok.Getter
-	//@JsonManagedReference
 	@OneToMany(mappedBy = "reviewedUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Review> receivedReviews = new ArrayList<>();
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true) // Disable orphan removal
+	private List<Application> applications = new ArrayList<>();
 
 	@Column(nullable = false, updatable = false)
 	@Temporal(TemporalType.TIMESTAMP)
@@ -102,23 +81,31 @@ public class User implements Serializable {
 	@LastModifiedDate
 	private Date updatedAt;
 
+	@Column(nullable = false)
+	private boolean isBanned = Boolean.FALSE;
+
 	public User() {
 		super();
 	}
 
-	public User(String name, String email, String telephone_number, String password, String role, byte[] profilePicture, List<Usluga> uslugas, List<Usluga> favoriteUslugas) {
-		super();
+	public User(String name, String email, String telephoneNumber, String password, String role, byte[] profilePicture) {
 		this.name = name;
 		this.email = email;
-		this.telephone_number = telephone_number;
+		this.telephoneNumber = telephoneNumber;
 		this.password = password;
 		this.role = role;
-		if (role.equals("мастер")){
-			this.portfolio = new Portfolio();
-		}
 		this.profilePicture = profilePicture;
-		this.uslugas = uslugas;
-		this.favoriteUslugas = favoriteUslugas;
+	}
+
+	// Helper method to maintain bidirectional relationship
+	public void addApplication(Application application) {
+		applications.add(application);
+		application.setUser(this);
+	}
+
+	public void removeApplication(Application application) {
+		applications.remove(application);
+		application.setUser(null);
 	}
 
 }

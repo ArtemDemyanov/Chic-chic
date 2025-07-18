@@ -39,4 +39,7 @@ public class ApplicationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Application", "id", id));
         applicationRepository.delete(application);
     }
+    public List<Application> getApplicationsByMaster(Long masterId) {
+        return applicationRepository.findByMasterId(masterId);
+    }
 }

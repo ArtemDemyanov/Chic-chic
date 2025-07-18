@@ -30,4 +30,11 @@ public class LoginFilter  extends AbstractAuthenticationProcessingFilter {
     protected void successfulAuthentication(HttpServletRequest req, HttpServletResponse res, FilterChain chain, Authentication auth) {
         JWTService.addToken(res, auth.getName());
     }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest req, HttpServletResponse res, AuthenticationException failed) throws IOException {
+        res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        res.setContentType("application/json");
+        res.getWriter().write("{\"error\": \"" + failed.getMessage() + "\"}");
+    }
 }

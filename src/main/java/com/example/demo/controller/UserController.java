@@ -1,6 +1,12 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ReviewDTO;
+import com.example.demo.dto.UserDTO;
 import com.example.demo.dto.UserPostDTO;
+import com.example.demo.dto.UslugaDTO;
+import com.example.demo.mapper.ReviewMapper;
+import com.example.demo.mapper.UserMapper;
+import com.example.demo.mapper.UslugaMapper;
 import com.example.demo.model.Review;
 import com.example.demo.model.User;
 import com.example.demo.model.Usluga;
@@ -16,122 +22,170 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
-
     private final UslugaService uslugaService;
+
     @Autowired
     public UserController(UserService userService, UslugaService uslugaService) {
         this.userService = userService;
         this.uslugaService = uslugaService;
     }
 
-    @Operation(summary = "Посмотреть всех пользователей")
-    @GetMapping("/user")
-    public List<User> getUsers() {
-        return userService.getUsers();
-    }
-
-    @Operation(summary = "Регистрация пользователя")
-    @PostMapping("/user")
-    public ResponseEntity<Optional<User>> addUser(@RequestBody UserPostDTO newUserDTO) {
-        if (newUserDTO.getName() == null ||
-                newUserDTO.getEmail() == null ||
-                newUserDTO.getPassword() == null || newUserDTO.getTelephone_number() == null || newUserDTO.getRole() == null) {
-            return new ResponseEntity<>(Optional.ofNullable(null), HttpStatus.BAD_REQUEST);
-        }
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        User newUser = new User(newUserDTO.getName(), newUserDTO.getEmail(), newUserDTO.getTelephone_number(),
-                encoder.encode(newUserDTO.getPassword()),newUserDTO.getRole(),null,null,null);
-        userService.saveUser(newUser);
-        return new ResponseEntity<>(Optional.ofNullable(newUser),HttpStatus.CREATED);
-
-    }
-
-    @Operation(summary = "Обновить профиль пользователя")
-    @PutMapping("/user/{id}")
-    public ResponseEntity<Optional<User>> updateUser(@PathVariable(value="id") long Id, @RequestBody User newUser ){
-        Optional<User> existingUser = userService.findByID(Id);
-
-        if (existingUser.isPresent()) {
-            User userToUpdate = existingUser.get();
-            userToUpdate.setName(newUser.getName());
-            userToUpdate.setEmail(newUser.getEmail());
-            userService.saveUser(userToUpdate);
-
-            return new ResponseEntity<>(Optional.ofNullable(userToUpdate), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(Optional.empty(), HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @Operation(summary = "Обновить фотографию в профиле")
-    @PutMapping(path="/user/{id}", consumes = "multipart/form-data")
-    public ResponseEntity<Optional<User>> updateProfilePicture(@RequestPart(value = "file") MultipartFile file, @PathVariable(value="id") long Id) {
-        Optional<User> existingUser = userService.findByID(Id);
-
-        if (existingUser.isPresent()) {
-            User userToUpdate = existingUser.get();
-            if (file != null && !file.isEmpty()) {
-                try {
-                    userToUpdate.setProfilePicture(file.getBytes());
-                } catch (IOException e) {
-                    return new ResponseEntity<>(Optional.empty(), HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-            }
-            userService.saveUser(userToUpdate);
-
-            return new ResponseEntity<>(Optional.ofNullable(userToUpdate), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(Optional.empty(), HttpStatus.NOT_FOUND);
-        }
-    }
-
-    @Operation(summary = "Получить информацию по определенному пользователю")
-    @GetMapping("/user/{id}")
-    public Optional<User> getUserById(@PathVariable(value = "id") long Id) {
-        return userService.findByID(Id);
-    }
-
-    @Operation(summary = "Удалить пользователя")
-    @DeleteMapping("/user/{id}")
-    public String deleteUser(@PathVariable(value = "id") long Id) {
-        userService.deleteUser(Id);
-        return "User Deleted";
-    }
-
-    @Operation(summary = "Получить информацию по определенному пользователю по его почте")
-    @GetMapping("/user/email/{email}")
-    public Optional<User> getUserByEmail(@PathVariable(value = "email") String email) {
-        return Optional.ofNullable(userService.findByEmail(email));
-    }
-
-    @Operation(summary = "Добавление услуги в избранное")
-    @PostMapping("/user/{userId}/{uslugaId}/favorite")
-    public ResponseEntity<String> addUslugaToFavorites(@PathVariable Long userId, @PathVariable Long uslugaId) {
-        Optional<User> optionalUser = userService.findByID(userId);
-        Optional<Usluga> optionalUsluga = uslugaService.findByID(uslugaId);
-        if (optionalUser.isPresent() && optionalUsluga.isPresent()) {
+    @Operation(summary = "Изменить роль пользователя (только для админа)")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping("/{id}/role")
+    public ResponseEntity<?> changeUserRole(@PathVariable Long id, @RequestBody String newRole) {
+        Optional<User> optionalUser = userService.findByID(id);
+        if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            Usluga Usluga = optionalUsluga.get();
-            user.getFavoriteUslugas().add(Usluga);
+            user.setRole(newRole);
             userService.saveUser(user);
-            return ResponseEntity.ok("Usluga added to favorites");
+            return ResponseEntity.ok("User role updated successfully.");
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
+    @Operation(summary = "Посмотреть всех пользователей")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping
+    public ResponseEntity<?> getUsers() {
+        return ResponseEntity.ok(userService.getUsers().stream()
+                .map(UserMapper::toDTO)
+                .toList());
+    }
+
+    @Operation(summary = "Регистрация пользователя")
+    @PostMapping
+    public ResponseEntity<?> addUser(@RequestBody UserPostDTO newUserDTO) {
+        // Validate required fields
+        if (newUserDTO.getName() == null ||
+                newUserDTO.getEmail() == null ||
+                newUserDTO.getPassword() == null ||
+                newUserDTO.getTelephone_number() == null ||
+                newUserDTO.getRole() == null) {
+            return new ResponseEntity<>("Missing required fields", HttpStatus.BAD_REQUEST);
+        }
+
+        // Hash the password
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        User newUser = UserMapper.toEntity(newUserDTO);
+        newUser.setPassword(encoder.encode(newUserDTO.getPassword()));
+
+        // Save the user
+        User savedUser = userService.saveUser(newUser);
+        return new ResponseEntity<>(UserMapper.toDTO(savedUser), HttpStatus.CREATED);
+    }
+
+    @Operation(summary = "Обновить профиль пользователя")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDTO updatedUserDTO) {
+        Optional<User> existingUserOptional = userService.findByID(id);
+        if (existingUserOptional.isPresent()) {
+            User existingUser = existingUserOptional.get();
+            User updatedUser = UserMapper.toEntity(updatedUserDTO);
+            updatedUser.setId(existingUser.getId());
+            updatedUser.setTelephoneNumber(existingUser.getTelephoneNumber());
+            updatedUser.setPassword(existingUser.getPassword()); // Preserve the hashed password
+            updatedUser.setProfilePicture(existingUser.getProfilePicture()); // Preserve the profile picture
+
+            User savedUser = userService.saveUser(updatedUser);
+            return ResponseEntity.ok(UserMapper.toDTO(savedUser));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Обновить фотографию в профиле")
+    @PutMapping(path = "/{id}", consumes = "multipart/form-data")
+    public ResponseEntity<?> updateProfilePicture(@RequestPart(value = "file") MultipartFile file, @PathVariable Long id) {
+        Optional<User> existingUserOptional = userService.findByID(id);
+        if (existingUserOptional.isPresent()) {
+            User userToUpdate = existingUserOptional.get();
+            if (file != null && !file.isEmpty()) {
+                try {
+                    userToUpdate.setProfilePicture(file.getBytes());
+                } catch (IOException e) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update profile picture");
+                }
+            }
+            User savedUser = userService.saveUser(userToUpdate);
+            return ResponseEntity.ok(UserMapper.toDTO(savedUser));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Получить информацию по определенному пользователю")
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        Optional<User> userOptional = userService.findByID(id);
+        return userOptional.map(UserMapper::toDTO).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Удалить пользователя")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        Optional<User> userOptional = userService.findByID(id);
+        if (userOptional.isPresent()) {
+            userService.deleteUser(id);
+            return ResponseEntity.ok("User Deleted");
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @Operation(summary = "Посмотреть всех пользователей с ролью 'мастер'")
+    @GetMapping("/masters")
+    public ResponseEntity<List<UserDTO>> getMasters() {
+        List<UserDTO> masters = userService.getUsers().stream()
+                .filter(user -> "master".equalsIgnoreCase(user.getRole()))
+                .map(UserMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(masters);
+    }
+
+    @Operation(summary = "Получить информацию по определенному пользователю по его почте")
+    @GetMapping("/email/{email}")
+    public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
+        Optional<User> userOptional = Optional.ofNullable(userService.findByEmail(email));
+        return userOptional.map(UserMapper::toDTO).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{userId}/{uslugaId}/favorite")
+    public ResponseEntity<String> addUslugaToFavorites(@PathVariable Long userId, @PathVariable Long uslugaId) {
+        Optional<User> optionalUser = userService.findByID(userId);
+        Optional<Usluga> optionalUsluga = uslugaService.findByID(uslugaId);
+        if (optionalUser.isPresent() && optionalUsluga.isPresent()) {
+            User user = optionalUser.get();
+            Usluga usluga = optionalUsluga.get();
+            if (!user.getFavoriteUslugas().contains(usluga)) {
+                user.getFavoriteUslugas().add(usluga);
+                userService.saveUser(user);
+                return ResponseEntity.ok("Usluga added to favorites");
+            } else {
+                return ResponseEntity.badRequest().body("Usluga already in favorites");
+            }
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
     @Operation(summary = "Удалить услугу из избранного")
-    @DeleteMapping("/user/{userId}/{uslugaId}/favorite")
+    @DeleteMapping("/{userId}/{uslugaId}/favorite")
     public ResponseEntity<String> removeUslugaFromFavorites(@PathVariable Long userId, @PathVariable Long uslugaId) {
         Optional<User> optionalUser = userService.findByID(userId);
         Optional<Usluga> optionalUsluga = uslugaService.findByID(uslugaId);
@@ -148,11 +202,14 @@ public class UserController {
 
     @Operation(summary = "Посмотреть услуги из избранного")
     @GetMapping("/{userId}/favorite-Uslugas")
-    public ResponseEntity<List<Usluga>> getFavoriteUslugas(@PathVariable Long userId) {
+    public ResponseEntity<List<UslugaDTO>> getFavoriteUslugas(@PathVariable Long userId) {
         Optional<User> optionalUser = userService.findByID(userId);
         if (optionalUser.isPresent()) {
             List<Usluga> favoriteUslugas = optionalUser.get().getFavoriteUslugas();
-            return ResponseEntity.ok(favoriteUslugas);
+            List<UslugaDTO> dtoList = favoriteUslugas.stream()
+                    .map(UslugaMapper::toDTO)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dtoList);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -175,17 +232,66 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Посмотреть отзывы на определенного мастера")
+    /*@Operation(summary = "Посмотреть отзывы на определенного мастера")
     @GetMapping("/user/{userId}/reviews")
     public ResponseEntity<?> getReviewsForUser(@PathVariable Long userId) {
         Optional<User> optionalUser = userService.findByID(userId);
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             List<Review> reviews = userService.getReviewsForUser(user);
-            return ResponseEntity.ok(reviews);
+            List<ReviewDTO> dtoList = reviews.stream().map(ReviewMapper::toDTO).collect(Collectors.toList());
+            return ResponseEntity.ok(dtoList);
         } else {
             return ResponseEntity.notFound().build();
         }
+    }*/
+
+    @Operation(summary = "Посмотреть отзывы на определенного мастера")
+    @GetMapping("/user/{userId}/reviews")
+    public ResponseEntity<?> getReviewsForUser(@PathVariable Long userId, Principal principal) {
+
+        // 1) находим профиль мастера
+        User reviewedUser = userService.findByID(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        // 2) находим того, кто делает запрос
+        User requester = userService.findByEmail(principal.getName());
+        if (requester == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        // 3) получаем список в зависимости от роли
+        List<Review> reviews = userService.getReviewsForViewer(reviewedUser, requester);
+
+        List<ReviewDTO> dtoList = reviews.stream()
+                .map(ReviewMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtoList);
+    }
+
+    @Operation(summary = "Посмотреть отзывы, которые оставил пользователь")
+    @GetMapping("/user/{userId}/user_reviews")
+    public ResponseEntity<?> getReviewsByUser(@PathVariable Long userId, Principal principal) {
+
+        // 1) Получаем автора отзывов
+        User reviewedUser = userService.findByID(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        // 2) находим того, кто делает запрос
+        User requester = userService.findByEmail(principal.getName());
+        if (requester == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+
+        // 3) получаем список в зависимости от роли
+        List<Review> reviews = userService.getUserReviews(reviewedUser, requester);
+
+        List<ReviewDTO> dtoList = reviews.stream()
+                .map(ReviewMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtoList);
     }
 
     @Operation(summary = "Удалить отзыв")

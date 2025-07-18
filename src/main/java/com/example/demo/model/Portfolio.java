@@ -1,6 +1,5 @@
 package com.example.demo.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.io.*;
@@ -14,13 +13,13 @@ public class Portfolio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @lombok.Getter
+    @lombok.Setter
     Long id;
 
     @lombok.Setter
     @lombok.Getter
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "пользователь_id")
-    @JsonBackReference
     User user;
 
     @lombok.Setter
@@ -41,6 +40,12 @@ public class Portfolio {
     @lombok.Setter
     @lombok.Getter
     String description;
+
+    @lombok.Setter
+    @lombok.Getter
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private ModerationStatus status = ModerationStatus.PENDING;
 
     public Portfolio(){
         super();
@@ -86,4 +91,5 @@ public class Portfolio {
             throw new RuntimeException("Ошибка при десериализации списка фотографий", e);
         }
     }
+
 }
